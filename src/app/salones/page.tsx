@@ -16,7 +16,7 @@ export default async function Salones() {
             + Agregar Salón
         </Link>
           <div className="salones">
-                <table className="table-dark table-bordered w-50">
+                <table className="table table-bordered w-50">
                     <thead>
                         <tr>
                             <th scope="col">Edificio</th>

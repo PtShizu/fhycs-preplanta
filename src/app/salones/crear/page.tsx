@@ -63,7 +63,7 @@ export default function CrearSalon() {
         <button type="submit" className="btn btn-primary me-2" onClick={handleSubmit}>
           Guardar
         </button>
-        <Link href="/salones" className="btn btn-outline-secondary">
+        <Link href="/salones" className="btn btn-danger">
           Cancelar
         </Link>
       </form>
