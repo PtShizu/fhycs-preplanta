@@ -21,6 +21,7 @@ export default function CrearSalon() {
       body: JSON.stringify(formData),
     });
     if (res.ok) {
+        router.refresh();
       router.push('/salones'); // Redirige al listado
     }
   };

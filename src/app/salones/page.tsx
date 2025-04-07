@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
 
+export const revalidate = 0;
+
 export default async function Salones() {
     const { data: salones } = await supabase.from('salones').select('*');
 
