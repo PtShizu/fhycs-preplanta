@@ -2,6 +2,7 @@ import React from "react";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
+import DeleteButton from "@/components/DeleteButton";
 
 export const revalidate = 0;
 
@@ -17,12 +18,13 @@ export default async function Salones() {
             <Link href="/salones/crear" className="btn btn-success">
                 + Agregar Salón
             </Link>
-                <table className="table table-bordered mt-3">
+                <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
                             <th scope="col">Edificio</th>
                             <th scope="col">Número</th>
                             <th scope="col">Capacidad</th>
+                            <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -31,6 +33,12 @@ export default async function Salones() {
                                 <th scope="row">{salon.edificio}</th>
                                 <td>{salon.num}</td>
                                 <td>{salon.capacidad}</td>
+                                <td className="w-25">
+                                    <div className="container">
+                                        <button className="btn btn-secondary me-2"><Link href="/salones/crear">Editar</Link></button>
+                                        <DeleteButton id={salon.id}/>
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
