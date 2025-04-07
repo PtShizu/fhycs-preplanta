@@ -57,7 +57,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('salones')
     .delete()
     .eq('id', id); // Usamos el id para identificar el registro a eliminar
