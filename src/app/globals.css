@@ -1,11 +1,16 @@
+/* Importa Bootstrap */
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap/dist/css/bootstrap.css";
+@import "bootstrap/dist/css/bootstrap-grid.css";
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e1e1f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #2b2e31;
     --foreground: #ededed;
   }
 }
