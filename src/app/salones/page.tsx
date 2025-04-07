@@ -11,14 +11,15 @@ export default async function Salones() {
     return (
         <main>
             <Nav></Nav>
-          <h1>Salones</h1>
-          <Link href="/salones/crear" className="btn btn-success">
-            + Agregar Salón
-        </Link>
-          <div className="salones">
-                <table className="table table-bordered w-50">
+          
+          <div className="salones container position-absolute start-0">
+            <h1 className="mt-3">Salones</h1>
+            <Link href="/salones/crear" className="btn btn-success">
+                + Agregar Salón
+            </Link>
+                <table className="table table-bordered mt-3">
                     <thead>
-                        <tr>
+                        <tr className="ptbs-3">
                             <th scope="col">Edificio</th>
                             <th scope="col">Número</th>
                             <th scope="col">Capacidad</th>
