@@ -7,7 +7,7 @@ import DeleteButton from "@/components/DeleteButton";
 export const revalidate = 0;
 
 export default async function Salones() {
-    const { data: salones } = await supabase.from('salones').select('*');
+    const { data: salones } = await supabase.from('salones').select('*').order("edificio").order("num");
 
     return (
         <main>
@@ -29,14 +29,14 @@ export default async function Salones() {
                     </thead>
                     <tbody>
                         {salones?.map(salon =>(
-                            <tr className="salon" key={salon.id}>
+                            <tr className="salon" key={salon.edificio+salon.num}>
                                 <th scope="row">{salon.edificio}</th>
                                 <td>{salon.num}</td>
                                 <td>{salon.capacidad}</td>
                                 <td className="w-25">
                                     <div className="container">
-                                        <button className="btn btn-secondary me-2"><Link href="/salones/crear">Editar</Link></button>
-                                        <DeleteButton id={salon.id}/>
+                                        <button className="btn btn-secondary me-2"><Link href={"/salones/"+salon.edificio+"/"+salon.num}>Editar</Link></button>
+                                        <DeleteButton edificio={salon.edificio} num={salon.num}/>
                                     </div>
                                 </td>
                             </tr>

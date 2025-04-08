@@ -4,22 +4,22 @@ import React from "react";
 import { useRouter } from 'next/navigation';
 
 interface DeleteButtonProps {
-    id: number;
+    edificio: string;
+    num: string;
 }
 
-export default function DeleteButton({id}: DeleteButtonProps){
+export default function DeleteButton({edificio, num}: DeleteButtonProps){
     const router = useRouter();
 
     return(
         <button className="btn btn-danger" type="button" onClick={async () => {
             try {
-                console.log(id);
                 const response = await fetch('/api/salones', {
                   method: 'DELETE',
                   headers: {
                     'Content-Type': 'application/json',
                   },
-                  body: JSON.stringify({ id }),
+                  body: JSON.stringify({ edificio, num }),
                 });
                 
                 if (!response.ok) throw new Error('Error al eliminar salón');
