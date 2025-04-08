@@ -1,7 +1,7 @@
 // src/app/salones/editar/page.tsx
 'use client'; // Necesario por los hooks y eventos
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/app/Nav';
