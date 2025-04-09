@@ -1,15 +1,14 @@
 // src/app/salones/editar/page.tsx
 'use client'; // Necesario por los hooks y eventos
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/app/Nav';
 
-export default function EditarSalon({params}: any) {
+export default function EditarSalon({params}: {params: Promise<{edificio: string, salon: string}>}) {
   const router = useRouter();
-  const edificioProp = params.edificio;
-  const salonProp = params.salon;
+  const { edificio, salon} = use(params);
 
   const [formData, setFormData] = useState({
     edificio: '',
@@ -17,13 +16,19 @@ export default function EditarSalon({params}: any) {
     capacidad: ''
   });
 
+  const [prevData, setPrevData] = useState({
+    prevEdificio: '',
+    prevNum: ''
+  });
+
   useEffect(() => {
     const fetchSalon = async () => {
       try {
-        const response = await fetch(`/api/salones?edificio=${edificioProp}&salon=${salonProp}`);
+        const response = await fetch(`/api/salones?edificio=${edificio}&salon=${salon}`);
         if (!response.ok) throw new Error('Error al cargar salón');
         const data = await response.json();
         setFormData(data);
+        setPrevData({prevEdificio: data.edificio, prevNum: data.num});
       } catch (error) {
         console.error(error);
         router.push('/salones'); // Redirige si hay error
@@ -37,10 +42,11 @@ export default function EditarSalon({params}: any) {
     const res = await fetch('/api/salones', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(Object.assign(prevData, formData)),
     });
     if (res.ok) {
         router.refresh();
+      console.log(Object.assign(prevData, formData));
       router.push('/salones'); // Redirige al listado
     }
   };

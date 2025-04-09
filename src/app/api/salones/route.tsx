@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
 // PUT/PATCH actualizar un salón existente
 export async function PUT(request: Request) {
-  const { edificio, num, capacidad } = await request.json();
+  const { prevEdificio, prevNum, edificio, num, capacidad } = await request.json();
   
   // Verificar que el id existe
   if (!edificio || !num) {
@@ -39,7 +39,7 @@ export async function PUT(request: Request) {
   const { data, error } = await supabase
     .from('salones')
     .update({ edificio, num, capacidad })
-    .eq('edificio', edificio).eq("num", num); // Usamos el id para identificar el registro a actualizar
+    .eq('edificio', prevEdificio).eq("num", prevNum); // Usamos el id para identificar el registro a actualizar
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
