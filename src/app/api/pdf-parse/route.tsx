@@ -1,6 +1,4 @@
 // pages/api/pdf-parse.tsx
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { NextResponse } from 'next/server'
 import pdfParse from 'pdf-parse'
 
 type Disponibilidad = { [key: string]: string[] }

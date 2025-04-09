@@ -4,7 +4,7 @@
 import { useState } from 'react';
 
 export default function UploadPDF() {
-  const [resultado, setResultado] = useState<any>(null);
+  const [resultado, setResultado] = useState<object>(null);
 
   const [file, setFile] = useState<File | null>(null)
 
