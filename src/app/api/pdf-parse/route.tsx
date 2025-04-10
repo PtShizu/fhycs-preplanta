@@ -1,5 +1,6 @@
 // pages/api/pdf-parse.tsx
-import pdfParse from 'pdf-parse'
+//import pdfParse from 'pdf-parse'
+const pdfParse = require('pdf-parse');
 
 type Disponibilidad = { [key: string]: string[] }
 
