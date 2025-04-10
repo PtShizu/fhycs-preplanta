@@ -14,6 +14,9 @@ type Resultado = {
   otros_programas?: string
 }
 
+const clean = (s: string | null | undefined): string | null =>
+  s ? s.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim() : null
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
@@ -37,9 +40,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const nombre = getBetween(text, 'Nombre:', 'No. Empleado:')
-    const num_empleado = getBetween(text, 'No. Empleado:', 'Tel. Particular:')
-    const correo = getBetween(text, 'Correo electrónico:', 'Tel. Celular:')
+    const nombre = clean(getBetween(text, 'Nombre:', 'No. Empleado:'))
+    const num_empleado = clean(getBetween(text, 'No. Empleado:', 'Tel. Particular:'))
+    const correo = clean(getBetween(text, 'Correo electrónico:', 'Tel. Celular:'))
 
     const horas = ['08-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22', '22-24']
     const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
@@ -64,13 +67,13 @@ export async function POST(req: Request) {
     const materias: string[] = []
     const asigMatch = text.match(/Asignaturas de interés por impartir:\s*(.*?)\s*(MARQUE|PLATAFORMAS)/s)
     if (asigMatch) {
-      materias.push(...asigMatch[1].split('\n').map(l => l.trim()).filter(Boolean))
+      materias.push(...asigMatch[1].split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean))
     }
 
     const cursos: string[] = []
     const cursoMatch = text.match(/CURSOS DE ACTUALIZACIÓN.*?(\d{4}-\d{1})\s*(.*?)\s*(¿Imparte|¿En qué|Indique|Imparte clases|Programas|$)/s)
     if (cursoMatch) {
-      cursos.push(...cursoMatch[2].split('\n').map(l => l.trim()).filter(Boolean))
+      cursos.push(...cursoMatch[2].split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean))
     }
 
     const plataformas: string[] = []
@@ -79,7 +82,8 @@ export async function POST(req: Request) {
     if (text.includes('Sj Syntax Tree')) plataformas.push('Sj Syntax Tree')
 
     const otrosMatch = text.match(/¿Imparte clases en otro programa académico\?.*?Indique en cuales:\s*(.*)/s)
-    const otros_programas = otrosMatch?.[1]?.trim()
+    const otros_programas = otrosMatch?.[1]?.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    
 
     const result: Resultado = {
       nombre,
