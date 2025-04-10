@@ -8,7 +8,7 @@ type Resultado = {
   num_empleado: string | null
   correo: string | null
   disponibilidad: Disponibilidad
-  asignaturas_interes: string[]
+  asignaturas_interes: { asignatura: string; requerimientos: string[] }[]
   cursos: string[]
   plataformas: string[]
   otros_programas?: string
@@ -16,6 +16,90 @@ type Resultado = {
 
 const clean = (s: string | null | undefined): string | null =>
   s ? s.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim() : null
+
+function extraerRequerimientos(texto: string): string[] {
+  const bloque: string[] = []
+  const match = texto.match(/Requerimientos técnicos\s*(.*?)\s*(Asignaturas de interés|PLATAFORMAS DIGITALES|MARQUE|CURSOS DE ACTUALIZACIÓN|Programas académicos|0|1|2|HRS|LUNES|MARTES|MIÉRCOLES|JUEVES|VIERNES|SÁBADO|DOMINGO|$)/s)
+
+  if (!match) return []
+
+  bloque.push(...match[0].split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean))
+
+  return bloque
+}
+
+function mapearAsignaturasYRequerimientos(asignaturas: string[], requerimientos: string[]): {
+  asignatura: string;
+  requerimientos: string[];
+}[] {
+  return asignaturas.map((asignatura, i) => {
+    const reqRaw = requerimientos[i] || ''
+    const lista = reqRaw
+      .replace(/\.$/, '') // quitar punto final
+      .replace(/\n/g, ' ')
+      .split(/,| y /) // dividir por coma o “y”
+      .map(r => r.trim())
+      .filter(r => r.length > 0)
+
+    return { asignatura, requerimientos: lista }
+  })
+}
+
+function extraerBloqueAsignaturas(textoCompleto: string): string[] {
+  const inicio = textoCompleto.indexOf("Asignaturas de interés por impartir")
+  if (inicio === -1) return []
+
+  // Recorta desde esa posición
+  const desdeAsignaturas = textoCompleto.slice(inicio)
+
+  // Encuentra dónde podría terminar
+  const fin =
+    desdeAsignaturas.indexOf("MARQUE") != -1
+      ? desdeAsignaturas.indexOf("MARQUE")
+      : desdeAsignaturas.length
+
+  const bloque = desdeAsignaturas.slice(0, fin)
+  return bloque.split("\n").map((l) => l.trim()).filter((l) => l.length > 0)
+}
+
+function parsearAsignaturasYRequerimientos(lineas: string[]) {
+  const resultado: { asignatura: string; requerimientos: string[] }[] = []
+
+  let i = 0
+  while (i < lineas.length) {
+    const linea = lineas[i]
+
+    if (linea.match(/(Pizarrón|cañón|pizarrones|Dos|Requerimientos)/i)) {
+      const match = linea.match(/^(.+?)\s+(Pizarrón.*|Dos.*|Cañón)$/i)
+      if (match) {
+        resultado.push({
+          asignatura: match[1].trim(),
+          requerimientos: match[2].split(/,| y /).map((r) => r.trim()),
+        })
+      }
+      i++
+      continue
+    }
+
+    const asignatura = linea
+    const siguiente = lineas[i + 1] || ""
+
+    if (siguiente.match(/(Pizarrón|cañón|pizarrones|Dos|Requerimientos)/i)) {
+      resultado.push({
+        asignatura,
+        requerimientos: siguiente.split(/,| y /).map((r) => r.trim()),
+      })
+      i += 2
+    } else {
+      resultado.push({ asignatura, requerimientos: [] })
+      i++
+    }
+  }
+
+  return resultado
+}
+
+
 
 export async function POST(req: Request) {
   try {
@@ -64,12 +148,6 @@ export async function POST(req: Request) {
       })
     })
 
-    const materias: string[] = []
-    const asigMatch = text.match(/Asignaturas de interés por impartir:\s*(.*?)\s*(MARQUE|PLATAFORMAS)/s)
-    if (asigMatch) {
-      materias.push(...asigMatch[1].split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean))
-    }
-
     const cursos: string[] = []
     const cursoMatch = text.match(/CURSOS DE ACTUALIZACIÓN.*?(\d{4}-\d{1})\s*(.*?)\s*(¿Imparte|¿En qué|Indique|Imparte clases|Programas|$)/s)
     if (cursoMatch) {
@@ -83,14 +161,17 @@ export async function POST(req: Request) {
 
     const otrosMatch = text.match(/¿Imparte clases en otro programa académico\?.*?Indique en cuales:\s*(.*)/s)
     const otros_programas = otrosMatch?.[1]?.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
-    
+
+    // Buscar requerimientos por asignatura
+    const lineasAsignatura = extraerBloqueAsignaturas(text)
+    const requerimientos_asignatura = parsearAsignaturasYRequerimientos(lineasAsignatura)
 
     const result: Resultado = {
       nombre,
       num_empleado,
       correo,
       disponibilidad,
-      asignaturas_interes: materias,
+      asignaturas_interes: requerimientos_asignatura,
       cursos,
       plataformas,
       otros_programas,

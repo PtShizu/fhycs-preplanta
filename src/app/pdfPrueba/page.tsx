@@ -3,8 +3,19 @@
 
 import { useState } from 'react';
 
+type Resultado = {
+  nombre: string | null
+  num_empleado: string | null
+  correo: string | null
+  disponibilidad: Record<string, string[]>
+  asignaturas_interes: { asignatura: string; requerimientos: string[] }[]
+  cursos: string[]
+  plataformas: string[]
+  otros_programas?: string
+}
+
 export default function UploadPDF() {
-  const [resultado, setResultado] = useState<object>(null); 
+  const [resultado, setResultado] = useState<Resultado>(null); 
 
   const [file, setFile] = useState<File | null>(null)
 
