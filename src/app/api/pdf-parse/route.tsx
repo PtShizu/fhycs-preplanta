@@ -17,34 +17,6 @@ type Resultado = {
 const clean = (s: string | null | undefined): string | null =>
   s ? s.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim() : null
 
-function extraerRequerimientos(texto: string): string[] {
-  const bloque: string[] = []
-  const match = texto.match(/Requerimientos técnicos\s*(.*?)\s*(Asignaturas de interés|PLATAFORMAS DIGITALES|MARQUE|CURSOS DE ACTUALIZACIÓN|Programas académicos|0|1|2|HRS|LUNES|MARTES|MIÉRCOLES|JUEVES|VIERNES|SÁBADO|DOMINGO|$)/s)
-
-  if (!match) return []
-
-  bloque.push(...match[0].split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean))
-
-  return bloque
-}
-
-function mapearAsignaturasYRequerimientos(asignaturas: string[], requerimientos: string[]): {
-  asignatura: string;
-  requerimientos: string[];
-}[] {
-  return asignaturas.map((asignatura, i) => {
-    const reqRaw = requerimientos[i] || ''
-    const lista = reqRaw
-      .replace(/\.$/, '') // quitar punto final
-      .replace(/\n/g, ' ')
-      .split(/,| y /) // dividir por coma o “y”
-      .map(r => r.trim())
-      .filter(r => r.length > 0)
-
-    return { asignatura, requerimientos: lista }
-  })
-}
-
 function extraerBloqueAsignaturas(textoCompleto: string): string[] {
   const inicio = textoCompleto.indexOf("Asignaturas de interés por impartir")
   if (inicio === -1) return []
