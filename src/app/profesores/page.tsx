@@ -2,7 +2,6 @@ import React from "react";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
-import DeleteButton from "@/components/DeleteButton";
 
 export const revalidate = 0;
 
