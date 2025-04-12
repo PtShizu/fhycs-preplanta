@@ -25,6 +25,7 @@ export async function POST(request: Request) {
 }
 
 // PUT/PATCH actualizar un salón existente
+// El conjunto de edificio y número de salón actúan como el id
 export async function PUT(request: Request) {
   const { prevEdificio, prevNum, edificio, num, capacidad } = await request.json();
   
