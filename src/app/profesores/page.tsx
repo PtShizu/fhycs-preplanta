@@ -7,36 +7,35 @@ import DeleteButton from "@/components/DeleteButton";
 export const revalidate = 0;
 
 export default async function Salones() {
-    const { data: salones } = await supabase.from('salones').select('*').order("edificio").order("num");
+    const { data: profesores } = await supabase.from('profesores').select('*').order("nombre");
 
     return (
         <main>
             <Nav></Nav>
           
           <div className="salones container position-absolute start-0">
-            <h1 className="mt-3">Salones</h1>
+            <h1 className="mt-3">Profesores</h1>
             <Link href="/salones/crear" className="btn btn-success">
-                + Agregar Salón
+                + Agregar Profesor
             </Link>
                 <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
-                            <th scope="col">Edificio</th>
-                            <th scope="col">Número</th>
-                            <th scope="col">Capacidad</th>
+                            <th scope="col">Número de empleado</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Correo</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {salones?.map(salon =>(
-                            <tr className="salon" key={salon.edificio+salon.num}>
-                                <th scope="row">{salon.edificio}</th>
-                                <td>{salon.num}</td>
-                                <td>{salon.capacidad}</td>
+                        {profesores?.map(profesor =>(
+                            <tr className="profesor" key={profesor.id}>
+                                <th scope="row">{profesor.num_empleado}</th>
+                                <td>{profesor.nombre}</td>
+                                <td>{profesor.correo}</td>
                                 <td className="w-25">
                                     <div className="container">
-                                        <button className="btn btn-secondary me-2"><Link href={"/salones/"+salon.edificio+"/"+salon.num}>Editar</Link></button>
-                                        <DeleteButton edificio={salon.edificio} num={salon.num}/>
+                                        <button className="btn btn-secondary me-2"><Link href={"/profesores"}>Editar</Link></button>
                                     </div>
                                 </td>
                             </tr>

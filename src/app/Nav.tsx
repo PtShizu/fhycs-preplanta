@@ -18,6 +18,9 @@ function Nav(){
                     <li className="nav-item">
                     <Link href="/salones" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Salones</span></Link>
                     </li>
+                    <li className="nav-item">
+                    <Link href="/profesores" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Profesores</span></Link>
+                    </li>
                 </ul>
                 </div>
             </div>
