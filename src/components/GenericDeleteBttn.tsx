@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface DeleteButtonProps {
     id: string;
-    api: string
+    api: string;
 }
 
 export default function GenericDeleteBttn({id, api}: DeleteButtonProps){

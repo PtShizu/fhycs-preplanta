@@ -11,6 +11,11 @@ export async function GET(request: Request) {
   return NextResponse.json(data);
 }
 
+interface asignatura {
+  asignatura: string
+  requerimientos: string
+}
+
 export async function POST(request: Request) {
   const {
     nombre,
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
 
   // 3. Insertar asignaturas de interés (con requerimientos)
   if (asignaturas_interes.length > 0) {
-    const asignaturasData = asignaturas_interes.map((item: any) => ({
+    const asignaturasData = asignaturas_interes.map((item: asignatura) => ({
       profesor_id,
       materia_id: item.asignatura,
       requerimientos: item.requerimientos,
