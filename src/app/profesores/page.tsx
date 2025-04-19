@@ -2,6 +2,7 @@ import React from "react";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
+import GenericDeleteBttn from "@/components/GenericDeleteBttn";
 
 export const revalidate = 0;
 
@@ -14,7 +15,7 @@ export default async function Salones() {
           
           <div className="salones container position-absolute start-0">
             <h1 className="mt-3">Profesores</h1>
-            <Link href="/salones/crear" className="btn btn-success">
+            <Link href="/profesores/crear" className="btn btn-success">
                 + Agregar Profesor
             </Link>
                 <table className="table mt-3">
@@ -35,6 +36,7 @@ export default async function Salones() {
                                 <td className="w-25">
                                     <div className="container">
                                         <button className="btn btn-secondary me-2"><Link href={"/profesores"}>Editar</Link></button>
+                                        <GenericDeleteBttn id={profesor.id} api={"profesores"}/>
                                     </div>
                                 </td>
                             </tr>

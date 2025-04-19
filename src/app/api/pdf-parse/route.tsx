@@ -8,7 +8,7 @@ type Resultado = {
   num_empleado: string | null
   correo: string | null
   disponibilidad: Disponibilidad
-  asignaturas_interes: { asignatura: string; requerimientos: string[] }[]
+  asignaturas_interes: { asignatura: string; requerimientos: string }[]
   cursos: string[]
   plataformas: string[]
   otros_programas?: string
@@ -35,7 +35,7 @@ function extraerBloqueAsignaturas(textoCompleto: string): string[] {
 }
 
 function parsearAsignaturasYRequerimientos(lineas: string[]) {
-  const resultado: { asignatura: string; requerimientos: string[] }[] = []
+  const resultado: { asignatura: string; requerimientos: string }[] = []
 
   let i = 0
   while (i < lineas.length) {
@@ -46,7 +46,7 @@ function parsearAsignaturasYRequerimientos(lineas: string[]) {
       if (match) {
         resultado.push({
           asignatura: match[1].trim(),
-          requerimientos: match[2].split(/,| y /).map((r) => r.trim()),
+          requerimientos: match[2].trim(),
         })
       }
       i++
@@ -59,11 +59,11 @@ function parsearAsignaturasYRequerimientos(lineas: string[]) {
     if (siguiente.match(/(Pizarrón|cañón|pizarrones|Dos|Requerimientos)/i)) {
       resultado.push({
         asignatura,
-        requerimientos: siguiente.split(/,| y /).map((r) => r.trim()),
+        requerimientos: siguiente.trim(),
       })
       i += 2
     } else {
-      resultado.push({ asignatura, requerimientos: [] })
+      resultado.push({ asignatura, requerimientos: null })
       i++
     }
   }

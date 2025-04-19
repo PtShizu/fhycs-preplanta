@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Resultado = {
   nombre: string | null
@@ -15,6 +16,7 @@ type Resultado = {
 }
 
 export default function UploadPDF() {
+  const router = useRouter();
   const [resultado, setResultado] = useState<Resultado>(null); 
 
   const [file, setFile] = useState<File | null>(null)
@@ -43,6 +45,18 @@ export default function UploadPDF() {
 
     reader.readAsDataURL(file)
   }
+
+  const handleSubmit = async () => {
+    const res = await fetch('/api/profesores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resultado),
+    });
+    if (res.ok) {
+      router.refresh();
+      router.push('/profesores'); // Redirige al listado
+    }
+  };
   
 
   return (
@@ -51,6 +65,11 @@ export default function UploadPDF() {
       <button onClick={handleUpload} className="bg-blue-500 text-white px-4 py-2 rounded">
         Subir PDF
       </button>
+      {resultado && (
+        <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded">
+          Agregar profesor
+        </button>
+      )}
 
       {resultado && (
         <div className="mt-4 bg-gray-100 p-4 rounded">
