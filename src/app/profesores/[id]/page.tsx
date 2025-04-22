@@ -121,7 +121,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                           className={`border ${activo ? 'bg-success text-white' : 'bg-white'} p-2`}
                           onClick={() => {
                             const copia = formData.disponibilidad;
-                            const position = copia.indexOf({profesor_id: id, dia: dia, hora: realrangos})
+                            const position = copia.findIndex((element) => element.profesor_id==id && element.dia==dia && element.hora==realrangos)
                             if (activo) {
                               copia.splice(position, 1);
                             } else {
