@@ -4,11 +4,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface Props {
+interface UploadProps {
     id: string;
 }
 
-export default function UploadPDFMaterias({ id }: Props) {
+export default function UploadPDFMaterias({ id }: UploadProps) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null)
 
