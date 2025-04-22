@@ -20,7 +20,6 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const router = useRouter();
   const { id } = use(params);
   const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
-  const rangos = ['8-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22'];
   const realrangos = ['8','10','12','14','16','18','20'];
 
 
