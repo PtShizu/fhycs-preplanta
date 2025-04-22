@@ -3,11 +3,36 @@ import { supabase } from '@/lib/supabase-client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const profesor = searchParams.get("profesor")
+  const profesor = searchParams.get("id")
   const { data, error } = await supabase.from('profesores').select('*').eq("id", profesor).single();
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
   }
+
+  const { data: disponData, error: dispError } = await supabase.from('disponibilidad_profesor').select('profesor_id, dia, hora').eq('profesor_id', profesor);
+  if (dispError) {
+    return NextResponse.json({ error }, { status: 501 });
+  }
+
+  const { data: asigData, error: asigError } = await supabase.from('asignaturas_interes').select('profesor_id, materia_id, requerimientos').eq('profesor_id', profesor);
+  if (asigError) {
+    return NextResponse.json({ error }, { status: 502 });
+  }
+
+  const { data: cursosData, error: cursosError } = await supabase.from('cursos_actualizacion').select('profesor_id, nombre').eq('profesor_id', profesor)
+  if (cursosError) {
+    return NextResponse.json({ error }, {status: 503});
+  }
+
+  const { data: platData, error: platError } = await supabase.from('plataformas_digitales').select('profesor_id, nombre').eq('profesor_id', profesor)
+  if (platError) {
+    return NextResponse.json({ error }, {status: 504});
+  }
+
+  data.disponibilidad = disponData;
+  data.asignaturas_interes = asigData;
+  data.cursos = cursosData;
+  data.plataformas = platData;
   return NextResponse.json(data);
 }
 
@@ -117,32 +142,62 @@ export async function POST(request: Request) {
   return NextResponse.json({ message: 'Profesor registrado con éxito' }, { status: 201 })
 }
 
-// PUT/PATCH actualizar un salón existente
-// El conjunto de edificio y número de salón actúan como el id
+// PUT/PATCH actualizar un profesor existente
 export async function PUT(request: Request) {
-  const { prevEdificio, prevNum, edificio, num, capacidad } = await request.json();
+  const {
+    id,
+    nombre,
+    num_empleado,
+    correo,
+    disponibilidad,
+    asignaturas_interes,
+    cursos,
+    plataformas,
+    otros_programas
+  } = await request.json()
   
   // Verificar que el id existe
-  if (!edificio || !num) {
+  if (!id) {
     return NextResponse.json(
-      { error: 'Se requiere especificar edificio y salón para actualizar' },
+      { error: 'Se requiere especificar profesor para actualizar' },
       { status: 400 }
     );
   }
 
-  const { data, error } = await supabase
-    .from('salones')
-    .update({ edificio, num, capacidad })
-    .eq('edificio', prevEdificio).eq("num", prevNum); // Usamos el id para identificar el registro a actualizar
+  const { error: errorProfesor } = await supabase
+    .from('profesores')
+    .update({ nombre, num_empleado, correo, otros_programas })
+    .eq('id', id);
 
-  if (error) {
-    return NextResponse.json({ error }, { status: 500 });
+  if (errorProfesor) return NextResponse.json({ error: errorProfesor.message }, { status: 500 });
+
+  // 2. Elimina las entradas existentes relacionadas (opcional: puedes hacerlo con diff si quieres)
+  const tablasRelacionadas = ['disponibilidad_profesor', 'asignaturas_interes', 'plataformas_digitales', 'cursos_actualizacion'];
+  for (const tabla of tablasRelacionadas) {
+    const { error } = await supabase
+      .from(tabla)
+      .delete()
+      .eq('profesor_id', id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 501 });
   }
-  
-  return NextResponse.json(data);
+
+  // 3. Inserta los nuevos datos relacionados
+  const inserts = [
+    { tabla: 'disponibilidad_profesor', datos: disponibilidad },
+    { tabla: 'asignaturas_interes', datos: asignaturas_interes },
+    { tabla: 'plataformas_digitales', datos: plataformas },
+    { tabla: 'cursos_actualizacion', datos: cursos },
+  ];
+
+  inserts.forEach(async(table) => {
+    const { error } = await supabase.from(table.tabla).insert(table.datos);
+    if (error) return NextResponse.json({ error: error.message }, { status: 502 });
+  })
+
+  return NextResponse.json({ message: 'Profesor actualizado' }, { status: 200 });
 }
 
-// DELETE eliminar un salón
+// DELETE eliminar un profesor
 export async function DELETE(request: Request) {
   const { id } = await request.json();
   
