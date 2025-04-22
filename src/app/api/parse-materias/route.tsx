@@ -20,7 +20,7 @@ type MateriaPrograma = {
   etapa: 'básica' | 'disciplinaria' | 'terminal' | null
 }
 
-export async function POST(req: Request, res: NextApiResponse) {
+export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { file, id } = body
@@ -84,7 +84,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         if (!claveMatch) { i++; continue }
       
         // Extraer clave y nombre
-        const clave = claveMatch[1]
+        //const clave = claveMatch[1]
         let nombre = (claveMatch[2] || '').trim()
         i++
       
