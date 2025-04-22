@@ -149,6 +149,7 @@ export async function PUT(request: Request) {
     nombre,
     num_empleado,
     correo,
+    coordina,
     disponibilidad,
     asignaturas_interes,
     cursos,
@@ -166,7 +167,7 @@ export async function PUT(request: Request) {
 
   const { error: errorProfesor } = await supabase
     .from('profesores')
-    .update({ nombre, num_empleado, correo, otros_programas })
+    .update({ nombre, num_empleado, correo, otros_programas, coordina })
     .eq('id', id);
 
   if (errorProfesor) return NextResponse.json({ error: errorProfesor.message }, { status: 500 });

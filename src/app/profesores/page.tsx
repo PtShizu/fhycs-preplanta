@@ -24,6 +24,7 @@ export default async function Salones() {
                             <th scope="col">Número de empleado</th>
                             <th scope="col">Nombre</th>
                             <th scope="col">Correo</th>
+                            <th scope="col">Coordina</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -33,6 +34,7 @@ export default async function Salones() {
                                 <th scope="row">{profesor.num_empleado}</th>
                                 <td>{profesor.nombre}</td>
                                 <td>{profesor.correo}</td>
+                                <td>{profesor.coordina}</td>
                                 <td className="w-25">
                                     <div className="container">
                                         <button className="btn btn-secondary me-2"><Link href={"/profesores/"+profesor.id}>Editar</Link></button>

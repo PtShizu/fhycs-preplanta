@@ -5,6 +5,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/app/Nav';
+import { supabase } from '@/lib/supabase-client';
 
 function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: string, dia: string, hora: string}[]) {
   let found = false;
@@ -21,6 +22,10 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const { id } = use(params);
   const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
   const realrangos = ['08','10','12','14','16','18','20'];
+  const [programas, setProgramas] = useState([{
+    id: '',
+    nombre: ''
+  }]);
 
 
   const [formData, setFormData] = useState({
@@ -28,6 +33,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
     nombre: '',
     num_empleado: '',
     correo: '',
+    coordina: '',
     disponibilidad: [{profesor_id: '', dia: '', hora: ''}],
     asignaturas_interes: [{profesor_id: '', materia_id: '', requerimientos: ''}],
     cursos: [{profesor_id: '', nombre: ''}],
@@ -36,7 +42,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   });
 
   useEffect(() => {
-    const fetchSalon = async () => {
+    const fetchProfesor = async () => {
       try {
         const response = await fetch(`/api/profesores?id=${id}`);
         if (!response.ok) throw new Error('Error al cargar salón');
@@ -47,8 +53,17 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         router.push('/profesores'); // Redirige si hay error
     }};
 
-    fetchSalon();
+    fetchProfesor();
   }, [params, router]);
+
+  useEffect(() => {
+    const fetchProgramas = async () => {
+      const { data: programas } = await supabase.from('programas_educativos').select('*').order("nombre");
+      setProgramas(programas);
+    }
+
+    fetchProgramas();
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +113,20 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                 onChange={(e) => setFormData({...formData, correo: e.target.value})}
                 required
             />
+            </div>
+            <div className="mb-3">
+            <label className="form-label">Coordina</label>
+            <div className='dropdown'>
+              <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {formData.coordina}
+              </button>
+              <ul className="dropdown-menu">
+                <li><button className='dropdown-item' type='button' onClick={() => setFormData({...formData, coordina: ''})}>RESET</button></li>
+                {programas.map(programa => (
+                  <li key={programa.id}><button className='dropdown-item' type='button' onClick={() => setFormData({...formData, coordina: programa.nombre})}>{programa.nombre}</button></li>
+                ))}
+              </ul>
+            </div>
             </div>
             <table className="table table-bordered text-center align-middle mt-3">
               <thead className="table-light">

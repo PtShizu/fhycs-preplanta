@@ -12,14 +12,20 @@ function Nav(){
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                 <ul className="navbar-nav">
-                    <li className="nav-item">
+                    <li className="nav-item me-3">
                     <Link href="/" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Home</span></Link>
                     </li>
-                    <li className="nav-item">
+                    <li className="nav-item me-3">
                     <Link href="/salones" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Salones</span></Link>
                     </li>
-                    <li className="nav-item">
+                    <li className="nav-item me-3">
                     <Link href="/profesores" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Profesores</span></Link>
+                    </li>
+                    <li className="nav-item me-3">
+                    <Link href="/grupos" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Grupos</span></Link>
+                    </li>
+                    <li className="nav-item me-3">
+                    <Link href="/programas_educativos" passHref legacyBehavior><span className="navbar-brand cursor-pointer">Programas Educativos</span></Link>
                     </li>
                 </ul>
                 </div>
