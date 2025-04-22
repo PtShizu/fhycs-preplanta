@@ -5,6 +5,8 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/app/Nav';
+import UploadPDFMaterias from '@/app/pdfMaterias/page';
+import { supabase } from '@/lib/supabase-client';
 
 export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const router = useRouter();
@@ -13,6 +15,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const [formData, setFormData] = useState({
     nombre: '',
   });
+  const [materias, setMateriasData] = useState<any[]>([])
 
   useEffect(() => {
     const fetchSalon = async () => {
@@ -28,6 +31,41 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
 
     fetchSalon();
   }, [params, router]);
+
+  useEffect(() => {
+    const fetchMaterias = async () => {
+      try {
+        const { data } = await supabase
+        .from('programas_materias')
+        .select(`
+            id,
+            tipo,
+            etapa,
+            semestre,
+            materia_id,
+            materias (
+            id,
+            nombre,
+            horas_clase,
+            horas_taller,
+            horas_lab,
+            hpc,
+            hcl,
+            he,
+            creditos
+            )
+        `)
+        .eq('programa_id', id)
+        .order('tipo')
+        .order('etapa', { ascending: true }) // Opcional
+        setMateriasData(data);
+      } catch (error) {
+        console.error(error);
+        router.push('/programas_educativos'); // Redirige si hay error
+    }};
+
+    fetchMaterias();
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +85,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         <Nav></Nav>
         <div className="container position-absolute start-0">
         <h1 className='mt-3'>Editar Programa Educativo</h1>
+        <UploadPDFMaterias id={id}/>
         <form onSubmit={handleSubmit} className="mt-3">
             <div className="mb-3">
             <label className="form-label">Nombre</label>
@@ -58,6 +97,33 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                 required
             />
             </div>
+            <table className="w-full border mt-4">
+            <thead>
+                <tr className="bg-gray-100">
+                <th className="px-2 py-1 text-left">Nombre</th>
+                <th className="px-2 py-1">Tipo</th>
+                <th className="px-2 py-1">Etapa</th>
+                <th className="px-2 py-1">HC</th>
+                <th className="px-2 py-1">HT</th>
+                <th className="px-2 py-1">HL</th>
+                <th className="px-2 py-1">Créditos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {materias.map((m) => (
+                <tr key={m.id} className="border-t">
+                    <td className="px-2 py-1">{m.materias.nombre}</td>
+                    <td className="px-2 py-1 capitalize">{m.tipo}</td>
+                    <td className="px-2 py-1 capitalize">{m.etapa ?? '—'}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.horas_clase}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.horas_taller}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.horas_lab}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.creditos}</td>
+                </tr>
+                ))}
+            </tbody>
+            </table>
+            
             <button type="submit" className="btn btn-primary me-2 mt-3" onClick={handleSubmit}>
             Guardar
             </button>
