@@ -8,25 +8,6 @@ import Nav from '@/app/Nav';
 import UploadPDFMaterias from '@/app/pdfMaterias/page';
 import { supabase } from '@/lib/supabase-client';
 
-type MateriaAsignada = {
-    id: string
-    tipo: string
-    etapa: string
-    semestre: number | null
-    materia_id: number
-    materias: {
-      id: string
-      nombre: string
-      horas_clase: number
-      horas_taller: number
-      horas_lab: number
-      hpc: number
-      hcl: number
-      he: number
-      creditos: number
-    }
-  }
-
 export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const router = useRouter();
   const { id } = use(params);
@@ -34,7 +15,8 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const [formData, setFormData] = useState({
     nombre: '',
   });
-  const [materias, setMateriasData] = useState<MateriaAsignada[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [materias, setMateriasData] = useState<any[]>([])
 
   useEffect(() => {
     const fetchSalon = async () => {
@@ -77,12 +59,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         .eq('programa_id', id)
         .order('tipo')
         .order('etapa', { ascending: true }) // Opcional
-        const normalizado = (data as any[]).map((entry) => ({
-            ...entry,
-            materias: Array.isArray(entry.materias) ? entry.materias[0] : entry.materias,
-          })) as MateriaAsignada[]
-        
-          setMateriasData(normalizado)
+        setMateriasData(data);
       } catch (error) {
         console.error(error);
         router.push('/programas_educativos'); // Redirige si hay error
