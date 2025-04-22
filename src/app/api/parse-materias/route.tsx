@@ -1,5 +1,4 @@
 // pages/api/parse-materias.ts
-import type { NextApiResponse } from 'next'
 import pdf from 'pdf-parse/lib/pdf-parse'
 import { supabase } from '@/lib/supabase-client'
 
