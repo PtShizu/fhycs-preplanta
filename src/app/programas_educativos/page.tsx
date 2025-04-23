@@ -22,6 +22,7 @@ export default async function Salones() {
                     <thead>
                         <tr className="ptbs-3">
                             <th scope="col">Nombre</th>
+                            <th scope="col">Número de grupo</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -29,6 +30,7 @@ export default async function Salones() {
                         {programas?.map(programa =>(
                             <tr className="salon" key={programa.id}>
                                 <th scope="row">{programa.nombre}</th>
+                                <th scope="row">{programa.numero_grupo}</th>
                                 <td className="w-25">
                                     <div className="container">
                                         <button className="btn btn-secondary me-2"><Link href={"/programas_educativos/"+programa.id}>Editar</Link></button>

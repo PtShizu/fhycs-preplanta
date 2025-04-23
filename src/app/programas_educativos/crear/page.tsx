@@ -10,6 +10,7 @@ export default function CrearSalon() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     nombre: '',
+    numero_grupo: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +39,16 @@ export default function CrearSalon() {
                 className="form-control"
                 value={formData.nombre}
                 onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label className="form-label">Número de grupo</label>
+            <input
+                type="text"
+                className="form-control"
+                value={formData.numero_grupo}
+                onChange={(e) => setFormData({...formData, numero_grupo: e.target.value})}
                 required
             />
             </div>

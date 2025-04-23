@@ -14,6 +14,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
 
   const [formData, setFormData] = useState({
     nombre: '',
+    numero_grupo: '',
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [materias, setMateriasData] = useState<any[]>([])
@@ -95,6 +96,16 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                 defaultValue={formData.nombre}
                 className="form-control"
                 onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                required
+            />
+            </div>
+            <div className="mb-3">
+            <label className="form-label">Número de grupo</label>
+            <input
+                type="text"
+                defaultValue={formData.numero_grupo}
+                className="form-control"
+                onChange={(e) => setFormData({...formData, numero_grupo: e.target.value})}
                 required
             />
             </div>
