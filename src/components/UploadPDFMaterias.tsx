@@ -41,7 +41,7 @@ export default function UploadPDFMaterias({ id }: UploadProps) {
   return (
     <div className="p-4 space-y-4">
       <input type="file" accept="application/pdf" onChange={handleSelect} />
-      <button onClick={handleUpload} className="bg-blue-500 text-white px-4 py-2 rounded">
+      <button onClick={handleUpload} className="bg-secondary text-white px-4 py-2 rounded">
         Subir PDF
       </button>
     </div>
