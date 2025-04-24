@@ -142,7 +142,11 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                 <th className="px-2 py-1">HC</th>
                 <th className="px-2 py-1">HT</th>
                 <th className="px-2 py-1">HL</th>
+                <th className="px-2 py-1">HPC</th>
+                <th className="px-2 py-1">HCL</th>
+                <th className="px-2 py-1">HE</th>
                 <th className="px-2 py-1">Créditos</th>
+                <th className="px-2 py-1">Semestre</th>
                 </tr>
             </thead>
             <tbody>
@@ -154,6 +158,9 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                     <td className="px-2 py-1 text-center">{m.materias.horas_clase}</td>
                     <td className="px-2 py-1 text-center">{m.materias.horas_taller}</td>
                     <td className="px-2 py-1 text-center">{m.materias.horas_lab}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.hpc}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.hcl}</td>
+                    <td className="px-2 py-1 text-center">{m.materias.he}</td>
                     <td className="px-2 py-1 text-center">{m.materias.creditos}</td>
                     <td className="px-2 py-1 text-center">
                       <input 
