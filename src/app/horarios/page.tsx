@@ -148,6 +148,46 @@ export default function Home() {
     updateClase();
   }, [profesoresDisponibles])
 
+  useEffect(() => {
+    const canal = supabase
+      .channel('clases-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clases' }, async (payload) => {
+        console.log("Cambio detectado en clases:", payload);
+  
+        const { data: clasesActualizadas } = await supabase.from('clases').select('*');
+        setClasesIds(clasesActualizadas);
+  
+        const clasesConNombres = await Promise.all(
+          clasesActualizadas.map(async (clase) => {
+            const { data: materia } = await supabase
+              .from('materias')
+              .select('nombre')
+              .eq('id', clase.materia_id)
+              .single();
+    
+            const { data: profesor } = await supabase
+              .from('profesores')
+              .select('nombre')
+              .eq('id', clase.profesor_id)
+              .single();
+    
+            return {
+              ...clase,
+              materia_nombre: materia?.nombre || 'Desconocido',
+              profesor_nombre: profesor?.nombre || 'Desconocido',
+            };
+          })
+        );
+  
+        setClases(clasesConNombres);
+      })
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, []);
+
   const manejarClickCelda = (dia: string, hora: string) => {
     const claseExistente = clases.find(c => c.grupo_id === grupoSeleccionado.id && c.dia === dia && c.hora === hora);
     setCelda(claseExistente);
@@ -162,30 +202,34 @@ export default function Home() {
   };
 
   const manejarDisponibilidad = () => {
-    const ocupados = [];
+    const ocupadosProfesores = new Set();
+    const ocupadosSalones = new Set();
+  
     clasesIds.forEach((claseFilter) => {
       if (claseFilter.dia === clase.dia && claseFilter.hora === clase.hora) {
-        ocupados.push(claseFilter.profesor_id, claseFilter.edificio, claseFilter.salon);
+        ocupadosProfesores.add(claseFilter.profesor_id);
+        ocupadosSalones.add(`${claseFilter.edificio}-${claseFilter.salon}`);
       }
     });
-    console.log("Ocupados: ", ocupados);
-    const retProfesores = [];
-    const retSalones = [];
-    salones.forEach((salon) => {
-      if (salon.edificio === clase.edificio && ocupados.includes(salon.num) === false) {
-        retSalones.push(salon);
-      }
-    });
+  
+    const retSalones = salones.filter(salon =>
+      salon.edificio === clase.edificio &&
+      !ocupadosSalones.has(`${salon.edificio}-${salon.num}`)
+    );
+  
+    const retProfesores = profesores.filter((profesor) =>
+      profesorDisponibilidad.some((disponibilidad) =>
+        disponibilidad.profesor_id === profesor.id &&
+        disponibilidad.dia === clase.dia &&
+        (disponibilidad.hora === clase.hora || parseInt(disponibilidad.hora) + 1 === parseInt(clase.hora)) &&
+        !ocupadosProfesores.has(profesor.id)
+      )
+    );
+  
     setSalonesDisponibles(retSalones);
-    for (let i = 0; i < profesores.length; i++) {
-      profesorDisponibilidad.forEach((disponibilidad) => {
-        if (disponibilidad.dia === clase.dia && ocupados.includes(disponibilidad.profesor_id) === false && (disponibilidad.hora === clase.hora || (parseInt(disponibilidad.hora) + 1) === parseInt(clase.hora))) {
-          retProfesores.push(profesores[i]);
-        }});
-    }
     setProfesoresDisponibles(retProfesores);
-    console.log("salones disponibles: ", retSalones);
   };
+  
 
   const updateClase = () => {
     let profDisponible = false;
@@ -200,21 +244,56 @@ export default function Home() {
   };
       
   const manejarSeleccionGrupo = (e) => {
-    const grupoId = e.target.value;
-    if (grupoId === 0) {
-      setGrupoSeleccionado(null);
-      return;
-    }
-    const grupo = grupos.find(g => g.id == grupoId);
-    setGrupoSeleccionado(grupo);
-    setClase(prev => ({ ...prev, grupo_id: grupo.id.toString() }));
-  };
+  const grupoId = e.target.value;
+  if (grupoId === 0) {
+    setGrupoSeleccionado(null);
+    setClase({
+      profesor_id: '', materia_id: '', tipo: '', grupo_id: '', dia: '', hora: '', edificio: '', salon: ''
+    });
+    return;
+  }
+  const grupo = grupos.find(g => g.id == grupoId);
+  setGrupoSeleccionado(grupo);
+  setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
+};
+
 
   const manejarAgregar = async () => {
     if (Object.values(clase).some(val => val === '')) return;
+    const { data: clasesActualizadas } = await supabase.from('clases').select('*');
+
+    if (clasesActualizadas.find(c =>
+      c.dia === clase.dia && c.hora === clase.hora &&
+      (c.profesor_id === clase.profesor_id || (c.edificio === clase.edificio && c.salon === clase.salon))
+    )) {
+      alert("Ya existe una clase a esa hora con ese profesor o salón.");
+      return;
+    }
+
     await supabase.from('clases').insert(clase);
-    const { data: nuevasClases } = await supabase.from('clases').select('*');
-    setClasesIds(nuevasClases);
+    const { data: nuevasClasesIds } = await supabase.from('clases').select('*');
+    const nuevasClases = await Promise.all(
+      clases.map(async (clase) => {
+        const { data: materia } = await supabase
+          .from('materias')
+          .select('nombre')
+          .eq('id', clase.materia_id)
+          .single();
+
+        const { data: profesor } = await supabase
+          .from('profesores')
+          .select('nombre')
+          .eq('id', clase.profesor_id)
+          .single();
+
+        return {
+          ...clase,
+          materia_id: materia?.nombre || clase.materia_id,
+          profesor_id: profesor?.nombre || clase.profesor_id,
+        };
+      })
+    );
+    setClasesIds(nuevasClasesIds);
     setClases(nuevasClases);
     setClase({
       profesor_id: '', materia_id: '', tipo: '', grupo_id: clase.grupo_id, dia: clase.dia, hora: clase.hora, edificio: '', salon: ''
@@ -225,8 +304,29 @@ export default function Home() {
   const manejarBorrar = async () => {
     if (!celda) return;
     await supabase.from('clases').delete().eq('id', celda.id);
-    const { data: nuevasClases } = await supabase.from('clases').select('*');
-    setClasesIds(nuevasClases);
+    const { data: nuevasClasesIds } = await supabase.from('clases').select('*');
+    const nuevasClases = await Promise.all(
+      clases.map(async (clase) => {
+        const { data: materia } = await supabase
+          .from('materias')
+          .select('nombre')
+          .eq('id', clase.materia_id)
+          .single();
+
+        const { data: profesor } = await supabase
+          .from('profesores')
+          .select('nombre')
+          .eq('id', clase.profesor_id)
+          .single();
+
+        return {
+          ...clase,
+          materia_id: materia?.nombre || clase.materia_id,
+          profesor_id: profesor?.nombre || clase.profesor_id,
+        };
+      })
+    );
+    setClasesIds(nuevasClasesIds);
     setClases(nuevasClases);
     setCelda(null);
     setClase({
