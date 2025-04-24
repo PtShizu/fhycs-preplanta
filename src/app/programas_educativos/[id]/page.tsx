@@ -8,6 +8,17 @@ import Nav from '@/app/Nav';
 import UploadPDFMaterias from '@/components/UploadPDFMaterias';
 import { supabase } from '@/lib/supabase-client';
 
+function enforceMinMax(el) {
+  if (el.value != "") {
+    if (parseInt(el.value) < parseInt(el.min)) {
+      el.value = el.min;
+    }
+    if (parseInt(el.value) > parseInt(el.max)) {
+      el.value = el.max;
+    }
+  }
+}
+
 export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   const router = useRouter();
   const { id } = use(params);
@@ -68,6 +79,19 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
 
     fetchMaterias();
   }, [id]);
+
+  const updateSemestre = async (id: string, semestre: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('programas_materias')
+        .update({ semestre })
+        .eq('id', id);
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +155,19 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                     <td className="px-2 py-1 text-center">{m.materias.horas_taller}</td>
                     <td className="px-2 py-1 text-center">{m.materias.horas_lab}</td>
                     <td className="px-2 py-1 text-center">{m.materias.creditos}</td>
+                    <td className="px-2 py-1 text-center">
+                      <input 
+                      type="number"
+                      min={1}
+                      defaultValue={m.semestre}
+                      className="form-control"
+                      onChange={(e) => {
+                        enforceMinMax(e.target);
+                        if (e.target.value === "") return;
+                        updateSemestre(m.id, parseInt(e.target.value));
+                      }}
+                      />
+                    </td>
                 </tr>
                 ))}
             </tbody>
