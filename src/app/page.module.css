@@ -166,3 +166,48 @@ a.secondary {
     filter: invert();
   }
 }
+
+
+
+
+.heroContainer {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  z-index: 1;
+  position: absolute !important; /* necesario para Next.js Image con fill */
+  top: 0;
+  left: 0;
+}
+
+.overlay {
+  position: relative;
+  z-index: 2;
+  color: rgb(255, 255, 255);
+  padding: 50px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.4); /* oscurece un poco para contraste */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.list {
+  list-style: none;
+  font-size: 1.5rem;
+  line-height: 2.2;
+  padding: 0;
+  margin: 0 auto;
+}
