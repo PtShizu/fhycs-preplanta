@@ -17,8 +17,10 @@ export default function Home() {
   const [edificio, setEdificio] = useState('');
   const [salones, setSalones] = useState([]); // todos los salones
   const [clases, setClases] = useState([]);
+  const [clasesIds, setClasesIds] = useState([]);
   const [celdaSeleccionada, setCeldaSeleccionada] = useState('')
   const [profesoresDisponibles, setProfesoresDisponibles] = useState([]);
+  const [salonesDisponibles, setSalonesDisponibles] = useState([]);
   const [tiposClase, setTiposClase] = useState<string[]>([]);
   const [clase, setClase] = useState({
     profesor_id: '',
@@ -69,6 +71,7 @@ export default function Home() {
       setProfesores(profesoresData);
       setMaterias(materiasData);
       setClases(clasesConNombres);
+      setClasesIds(clasesData)
       setProfesorDisponibilidad(profesorDisponibilidadData);
       
     };
@@ -103,6 +106,8 @@ export default function Home() {
           };
         })
       );
+      const { data: clasesData } = await supabase.from('clases').select('*');
+      setClasesIds(clasesData);
   
       setClases(nuevasClases);
     };
@@ -153,17 +158,33 @@ export default function Home() {
   const manejarGrupos = async () => {
     const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`);
     setGrupos(gruposData);
+    setCeldaSeleccionada('');
   };
 
   const manejarDisponibilidad = () => {
+    const ocupados = [];
+    clasesIds.forEach((claseFilter) => {
+      if (claseFilter.dia === clase.dia && claseFilter.hora === clase.hora) {
+        ocupados.push(claseFilter.profesor_id, claseFilter.edificio, claseFilter.salon);
+      }
+    });
+    console.log("Ocupados: ", ocupados);
     const retProfesores = [];
+    const retSalones = [];
+    salones.forEach((salon) => {
+      if (salon.edificio === clase.edificio && ocupados.includes(salon.num) === false) {
+        retSalones.push(salon);
+      }
+    });
+    setSalonesDisponibles(retSalones);
     for (let i = 0; i < profesores.length; i++) {
       profesorDisponibilidad.forEach((disponibilidad) => {
-        if (disponibilidad.dia === clase.dia && (disponibilidad.hora === clase.hora || (parseInt(disponibilidad.hora) + 1) === parseInt(clase.hora))) {
+        if (disponibilidad.dia === clase.dia && ocupados.includes(disponibilidad.profesor_id) === false && (disponibilidad.hora === clase.hora || (parseInt(disponibilidad.hora) + 1) === parseInt(clase.hora))) {
           retProfesores.push(profesores[i]);
         }});
     }
     setProfesoresDisponibles(retProfesores);
+    console.log("salones disponibles: ", retSalones);
   };
 
   const updateClase = () => {
@@ -193,6 +214,7 @@ export default function Home() {
     if (Object.values(clase).some(val => val === '')) return;
     await supabase.from('clases').insert(clase);
     const { data: nuevasClases } = await supabase.from('clases').select('*');
+    setClasesIds(nuevasClases);
     setClases(nuevasClases);
     setClase({
       profesor_id: '', materia_id: '', tipo: '', grupo_id: clase.grupo_id, dia: clase.dia, hora: clase.hora, edificio: '', salon: ''
@@ -204,6 +226,7 @@ export default function Home() {
     if (!celda) return;
     await supabase.from('clases').delete().eq('id', celda.id);
     const { data: nuevasClases } = await supabase.from('clases').select('*');
+    setClasesIds(nuevasClases);
     setClases(nuevasClases);
     setCelda(null);
     setClase({
@@ -304,7 +327,7 @@ export default function Home() {
                   onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
                 >
                   <option value="">Salón</option>
-                  {salones.filter(s => s.edificio === edificio).map(salon => (
+                  {salonesDisponibles.filter(s => s.edificio === edificio).map(salon => (
                     <option key={salon.num}>{salon.num}</option>
                   ))}
                 </select>

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Nav from '@/app/Nav';
 import { supabase } from '@/lib/supabase-client';
 
-function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: string, dia: string, hora: string}[]) {
+function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: number, dia: string, hora: string}[]) {
   let found = false;
   disponibilidad.forEach((date) => {
     if(date.dia==dia && date.hora==rango){
@@ -34,10 +34,10 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
     num_empleado: '',
     correo: '',
     coordina: '',
-    disponibilidad: [{profesor_id: '', dia: '', hora: ''}],
-    asignaturas_interes: [{profesor_id: '', materia_id: '', requerimientos: ''}],
-    cursos: [{profesor_id: '', nombre: ''}],
-    plataformas: [{profesor_id: '', nombre: ''}],
+    disponibilidad: [{profesor_id: 0, dia: '', hora: ''}],
+    asignaturas_interes: [{profesor_id: 0, materia_id: '', requerimientos: ''}],
+    cursos: [{profesor_id: 0, nombre: ''}],
+    plataformas: [{profesor_id: 0, nombre: ''}],
     otros_programas: ''
   });
 
@@ -95,7 +95,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             />
             </div>
             <div className="mb-3">
-            <label className="form-label">Número de empleo</label>
+            <label className="form-label">Número de empleado</label>
             <input
                 type="text"
                 defaultValue={formData.num_empleado}
@@ -150,13 +150,14 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                           className={`border ${activo ? 'bg-success text-white' : 'bg-white'} p-2`}
                           onClick={() => {
                             const copia = formData.disponibilidad;
-                            const position = copia.findIndex((element) => element.profesor_id==id && element.dia==dia && element.hora==realrangos)
+                            const position = copia.findIndex((element) => element.profesor_id==parseInt(id) && element.dia==dia && element.hora==realrangos)
                             if (activo) {
                               copia.splice(position, 1);
                             } else {
-                              copia.push({profesor_id: id, dia: dia, hora: realrangos});
+                              copia.push({profesor_id: parseInt(id), dia: dia, hora: realrangos});
                             }
                             setFormData({ ...formData, disponibilidad: copia });
+                            console.log(formData.disponibilidad);
                           }}
                         >
                           {activo ? '✔' : ''}
@@ -213,7 +214,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
               onClick={() => {
                 setFormData({
                   ...formData,
-                  asignaturas_interes: [...formData.asignaturas_interes, { profesor_id: id, materia_id: '', requerimientos: '' }]
+                  asignaturas_interes: [...formData.asignaturas_interes, { profesor_id: parseInt(id), materia_id: '', requerimientos: '' }]
                 });
               }}
             >
@@ -255,7 +256,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
               onClick={() => {
                 setFormData({
                   ...formData,
-                  cursos: [...formData.cursos, { profesor_id: id, nombre: '' }]
+                  cursos: [...formData.cursos, { profesor_id: parseInt(id), nombre: '' }]
                 });
               }}
             >
@@ -297,7 +298,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
               onClick={() => {
                 setFormData({
                   ...formData,
-                  plataformas: [...formData.plataformas, { profesor_id: id, nombre: '' }]
+                  plataformas: [...formData.plataformas, { profesor_id: parseInt(id), nombre: '' }]
                 });
               }}
             >
