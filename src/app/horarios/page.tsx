@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Nav from '../Nav';
 import { supabase } from '@/lib/supabase-client';
 
@@ -156,7 +156,7 @@ export default function Home() {
   };
 
   const manejarDisponibilidad = () => {
-    let retProfesores = [];
+    const retProfesores = [];
     for (let i = 0; i < profesores.length; i++) {
       profesorDisponibilidad.forEach((disponibilidad) => {
         if (disponibilidad.dia === clase.dia && (disponibilidad.hora === clase.hora || (parseInt(disponibilidad.hora) + 1) === parseInt(clase.hora))) {
