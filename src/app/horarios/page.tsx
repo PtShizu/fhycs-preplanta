@@ -212,9 +212,7 @@ export default function Home() {
       }
     });
   
-    const retSalones = salones.filter(salon =>
-      salon.edificio === clase.edificio &&
-      !ocupadosSalones.has(`${salon.edificio}-${salon.num}`)
+    const retSalones = salones.filter(salon => !ocupadosSalones.has(`${salon.edificio}-${salon.num}`)
     );
   
     const retProfesores = profesores.filter((profesor) =>
@@ -228,6 +226,7 @@ export default function Home() {
   
     setSalonesDisponibles(retSalones);
     setProfesoresDisponibles(retProfesores);
+    console.log("Salones disponibles:", retSalones);
   };
   
 
