@@ -1,25 +1,31 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Nav from '../Nav';
 import { supabase } from '@/lib/supabase-client';
 
 export default function Home() {
   const [programa, setPrograma] = useState({
+    id: '',
     nombre: '' ,
     numero_grupo: ''
   });
   const [grupos, setGrupos] = useState([]);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
+  const [grupoSemestre, setGrupoSemestre] = useState('');
   const [profesorDisponibilidad, setProfesorDisponibilidad] = useState([]);
   const [profesores, setProfesores] = useState([]);
   const [materias, setMaterias] = useState([]);
+  const [programas_materias, setProgramasMaterias] = useState([]);
+  const [finalMaterias, setFinalMaterias] = useState([]);
   const [edificio, setEdificio] = useState('');
   const [salones, setSalones] = useState([]); // todos los salones
   const [clases, setClases] = useState([]);
   const [clasesIds, setClasesIds] = useState([]);
   const [celdaSeleccionada, setCeldaSeleccionada] = useState('')
   const [profesoresDisponibles, setProfesoresDisponibles] = useState([]);
+  const [asignaturas_interes, setAsignaturasInteres] = useState([]);
+  const [profesores_interes, setProfesoresInteres] = useState([]);
   const [salonesDisponibles, setSalonesDisponibles] = useState([]);
   const [tiposClase, setTiposClase] = useState<string[]>([]);
   const [clase, setClase] = useState({
@@ -39,7 +45,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: programasData } = await supabase.from('programas_educativos').select('nombre, numero_grupo').eq('nombre', "Ciencias de la comunicación").single();
+      const { data: programasData } = await supabase.from('programas_educativos').select('*').eq('nombre', "Ciencias de la comunicación").single();
       const { data: profesoresData } = await supabase.from('profesores').select('*');
       const { data: materiasData } = await supabase.from('materias').select('*');
       const { data: clasesData } = await supabase.from('clases').select('*');
@@ -79,9 +85,54 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    console.log("Clase actualizada:", clase);
+    const fetchProgramasMaterias = async () => {
+      const { data: programasMateriasData } = await supabase
+        .from('programas_materias')
+        .select('*')
+        .eq('programa_id', programa.id);
+      setProgramasMaterias(programasMateriasData);
+    }
+    if (programa.id) {
+      fetchProgramasMaterias();
+    }
+  },[programa])
+
+  useEffect(() => {
+    setGrupoSemestre(grupoSeleccionado?.nombre.split('')[1]);
+  }, [grupoSeleccionado]);
+
+  useEffect(() => {
+    finalMaterias.length = 0; // Limpiar el array antes de llenarlo
+    if (!grupoSemestre) return; // Asegurarse de que grupoSemestre no esté vacío
+    materias.forEach((materia) => {
+      programas_materias.forEach((programa) => {
+        if (materia.id == programa.materia_id && programa.semestre == grupoSemestre) {
+          setFinalMaterias(prev => [...prev, materia]);
+        }
+      });
+    });
+  },[grupoSemestre]);
+
+  useEffect(() => {
     manejarDisponibilidad();
   }, [clase.dia, clase.hora]);
+
+  useEffect(() => {
+    setAsignaturasInteres([]);
+    const fetchAsignaturasInteres = async () => {
+      const { data: asignaturasData } = await supabase.from('asignaturas_interes').select('*').eq('profesor_id', clase.profesor_id);
+      materias.forEach((mat) => {
+        asignaturasData.forEach((asignatura) => {
+          if(asignatura.materia_id === mat.nombre) {
+            setAsignaturasInteres(prev => [...prev, mat.id]);
+          }
+        });
+      });
+    };
+    if (clase.profesor_id) {
+      fetchAsignaturasInteres();
+    }
+  }, [clase.profesor_id]);
 
   useEffect(() => {
     const actualizarNombres = async () => {
@@ -119,6 +170,7 @@ export default function Home() {
 
   useEffect(() => {
     const materiaSelecc = async () => {
+      setProfesoresInteres([]);
       const { data: materiaSeleccionada } = await supabase
         .from('materias')
         .select('*')
@@ -133,6 +185,17 @@ export default function Home() {
       if (materiaSeleccionada?.hlc > 0) nuevosTipos.push('hlc');
   
       setTiposClase(nuevosTipos);
+
+      const { data: asignaturasData } = await supabase.from('asignaturas_interes').select('*').like('materia_id', '%'+materiaSeleccionada.nombre+'%');
+      if(asignaturasData.length > 0) {
+        profesoresDisponibles.forEach((prof) => {
+          asignaturasData.forEach((asignatura) => {
+            if(asignatura.profesor_id == prof.id) {
+              setProfesoresInteres(prev => [...prev, prof.id]);
+            }
+          });
+        });
+      };
     };
   
     if (clase.materia_id) materiaSelecc();
@@ -140,7 +203,6 @@ export default function Home() {
   }, [clase.materia_id]);
 
   useEffect(() => {
-    console.log("Profesor actualizado: ", clase.profesor_id);
     manejarDisponibilidad();
   }, [clase.profesor_id]);
 
@@ -226,7 +288,6 @@ export default function Home() {
   
     setSalonesDisponibles(retSalones);
     setProfesoresDisponibles(retProfesores);
-    console.log("Salones disponibles:", retSalones);
   };
   
 
@@ -336,11 +397,11 @@ export default function Home() {
   return (
     <div>
       <Nav />
-      <div className="container">
+      <div className="main">
 
         <div className="mt-4">
-          <select className="form-select" onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
-            {!grupoSeleccionado && <option value={0}>Selecciona un grupo</option>}
+          <select className="form-select" disabled={!programa.id ? true : false} onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
+            {!grupoSeleccionado && <option value={0}>{programa.id ? 'Selecciona un grupo' : 'Cargando grupos...'}</option>}
             {grupos.map(g => (
               <option key={g.id} value={g.id}>{g.nombre}</option>
             ))}
@@ -348,8 +409,8 @@ export default function Home() {
         </div>
 
         {grupoSeleccionado && (
-          <div className="mt-4">
-            <table className="table table-bordered text-center align-middle">
+          <div className="row g-3 mt-4">
+            <table className="col-8 table table-bordered text-center align-middle">
               <thead>
                 <tr>
                   <th>Hora / Día</th>
@@ -388,27 +449,27 @@ export default function Home() {
               </tbody>
             </table>
 
-            <div className="row g-3 mt-3">
-              <div className="col-md-4">
+            <div className="col-4 g-3 mt-3">
+              <div className="col-md-6">
                 <select className="form-select" value={clase.profesor_id} onClick={manejarDisponibilidad} onChange={e => setClase({ ...clase, profesor_id: e.target.value })}>
                   <option value="">Selecciona profesor</option>
                   {
-                    profesoresDisponibles.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                    profesoresDisponibles.map(p => <option style={{ color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black'}} key={p.id} value={p.id}>{p.nombre}</option>)}
                 </select>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-6 mt-3">
                 <select className="form-select" value={clase.materia_id} onChange={e => setClase({ ...clase, materia_id: e.target.value })}>
                   <option value="">Selecciona materia</option>
-                  {materias.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                  {finalMaterias.map(m => <option style={{ color: asignaturas_interes.includes(m.id) ? 'red' : clase.profesor_id ? 'gray' : 'black'}} key={m.id} value={m.id}>{m.nombre}</option>)}
                 </select>
               </div>
-              <div className="col-md-4">
+              <div className="col-md-6 mt-3">
                 <select className='form-select' disabled={!clase.materia_id} value={clase.tipo} onChange={(e) => setClase(prev => ({ ...prev, tipo: e.target.value }))}>
                     <option value="">Tipo de clase</option>
                     {tiposClase.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
                 </select>
               </div>
-              <div className='col-md-4'>
+              <div className='col-md-6 mt-3'>
                 <select className="form-select" value={clase.edificio} onChange={(e) => {
                   const value = e.target.value;
                   setEdificio(value);
@@ -420,7 +481,7 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-              <div className='col-md-4'>
+              <div className='col-md-6 mt-3'>
                 <select className='form-select'
                   disabled={!edificio}
                   onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
@@ -431,16 +492,17 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div className="mt-3 d-flex gap-3">
+              <div className="mt-3 gap-3">
               <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.values(clase).some(val => val === '')}>
                 Agregar
               </button>
-              <button className="btn btn-danger" onClick={manejarBorrar} disabled={!celda}>
+              <button className="btn btn-danger ms-3" onClick={manejarBorrar} disabled={!celda}>
                 Borrar
               </button>
             </div>
+            </div>
+
+            
           </div>
         )}
       </div>
