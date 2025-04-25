@@ -58,6 +58,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             materia_id,
             materias (
             id,
+            clave,
             nombre,
             horas_clase,
             horas_taller,
@@ -136,6 +137,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <table className="w-full border mt-4">
             <thead>
                 <tr className="bg-gray-100">
+                <th className="px-2 py-1 text-left">Clave</th>
                 <th className="px-2 py-1 text-left">Nombre</th>
                 <th className="px-2 py-1">Tipo</th>
                 <th className="px-2 py-1">Etapa</th>
@@ -152,6 +154,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <tbody>
                 {materias.map((m) => (
                 <tr key={m.id} className="border-t">
+                  <td className="px-2 py-1">{m.materias.clave}</td>
                     <td className="px-2 py-1">{m.materias.nombre}</td>
                     <td className="px-2 py-1 capitalize">{m.tipo}</td>
                     <td className="px-2 py-1 capitalize">{m.etapa ?? '—'}</td>

@@ -3,6 +3,7 @@ import pdf from 'pdf-parse/lib/pdf-parse'
 import { supabase } from '@/lib/supabase-client'
 
 type Materia = {
+  clave: string
   nombre: string
   horas_clase: number
   horas_taller: number
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
         if (!claveMatch) { i++; continue }
       
         // Extraer clave y nombre
-        //const clave = claveMatch[1]
+        const clave = claveMatch[1]
         let nombre = (claveMatch[2] || '').trim()
         i++
       
@@ -129,6 +130,7 @@ export async function POST(req: Request) {
       
         // Construir el objeto Materia
         materias.push({
+          clave: clave,
           nombre,
           horas_clase: parseInt(hc === '--' ? '0' : hc),
           horas_taller: parseInt(ht === '--' ? '0' : ht),

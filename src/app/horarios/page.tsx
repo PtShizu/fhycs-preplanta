@@ -21,7 +21,6 @@ export default function Home() {
   const [edificio, setEdificio] = useState('');
   const [salones, setSalones] = useState([]); // todos los salones
   const [clases, setClases] = useState([]);
-  const [clasesIds, setClasesIds] = useState([]);
   const [celdaSeleccionada, setCeldaSeleccionada] = useState('')
   const [profesoresDisponibles, setProfesoresDisponibles] = useState([]);
   const [asignaturas_interes, setAsignaturasInteres] = useState([]);
@@ -30,7 +29,9 @@ export default function Home() {
   const [tiposClase, setTiposClase] = useState<string[]>([]);
   const [clase, setClase] = useState({
     profesor_id: '',
+    profesor_nombre: '',
     materia_id: '',
+    materia_nombre: '',
     grupo_id: '',
     edificio: '',
     salon: '',
@@ -50,34 +51,12 @@ export default function Home() {
       const { data: materiasData } = await supabase.from('materias').select('*');
       const { data: clasesData } = await supabase.from('clases').select('*');
       const { data: profesorDisponibilidadData } = await supabase.from('disponibilidad_profesor').select('*');
-      const clasesConNombres = await Promise.all(
-        clasesData.map(async (clase) => {
-          const { data: materia } = await supabase
-            .from('materias')
-            .select('nombre')
-            .eq('id', clase.materia_id) // Use the ID
-            .single();
-    
-          const { data: profesor } = await supabase
-            .from('profesores')
-            .select('nombre')
-            .eq('id', clase.profesor_id) // Use the ID
-            .single();
-    
-          return {
-            ...clase,
-            materia_nombre: materia?.nombre || 'Desconocido', // Store the name separately
-            profesor_nombre: profesor?.nombre || 'Desconocido',
-          };
-        })
-      );
       const { data: salonesData } = await supabase.from('salones').select('*');
       setPrograma(programasData);
       setSalones(salonesData);
       setProfesores(profesoresData);
       setMaterias(materiasData);
-      setClases(clasesConNombres);
-      setClasesIds(clasesData)
+      setClases(clasesData);
       setProfesorDisponibilidad(profesorDisponibilidadData);
       
     };
@@ -114,7 +93,9 @@ export default function Home() {
   },[grupoSemestre]);
 
   useEffect(() => {
-    manejarDisponibilidad();
+    if(clase.dia && clase.hora) {
+      manejarDisponibilidad();
+    }
   }, [clase.dia, clase.hora]);
 
   useEffect(() => {
@@ -133,40 +114,6 @@ export default function Home() {
       fetchAsignaturasInteres();
     }
   }, [clase.profesor_id]);
-
-  useEffect(() => {
-    const actualizarNombres = async () => {
-      const nuevasClases = await Promise.all(
-        clases.map(async (clase) => {
-          const { data: materia } = await supabase
-            .from('materias')
-            .select('nombre')
-            .eq('id', clase.materia_id)
-            .single();
-  
-          const { data: profesor } = await supabase
-            .from('profesores')
-            .select('nombre')
-            .eq('id', clase.profesor_id)
-            .single();
-  
-          return {
-            ...clase,
-            materia_id: materia?.nombre || clase.materia_id,
-            profesor_id: profesor?.nombre || clase.profesor_id,
-          };
-        })
-      );
-      const { data: clasesData } = await supabase.from('clases').select('*');
-      setClasesIds(clasesData);
-  
-      setClases(nuevasClases);
-    };
-  
-    if (clases.length > 0) {
-      actualizarNombres();
-    }
-  }, [clases.length]); // Solo se ejecuta cuando cambia la longitud del array
 
   useEffect(() => {
     const materiaSelecc = async () => {
@@ -203,12 +150,15 @@ export default function Home() {
   }, [clase.materia_id]);
 
   useEffect(() => {
-    manejarDisponibilidad();
-  }, [clase.profesor_id]);
+    updateClase();
+  }, [profesoresDisponibles]);
 
   useEffect(() => {
-    updateClase();
-  }, [profesoresDisponibles])
+    if(!clase.edificio){
+      setSalonesDisponibles([]);
+      setClase(prev => ({ ...prev, salon: ''}))
+    }
+  }, [clase.edificio]);
 
   useEffect(() => {
     const canal = supabase
@@ -217,31 +167,8 @@ export default function Home() {
         console.log("Cambio detectado en clases:", payload);
   
         const { data: clasesActualizadas } = await supabase.from('clases').select('*');
-        setClasesIds(clasesActualizadas);
   
-        const clasesConNombres = await Promise.all(
-          clasesActualizadas.map(async (clase) => {
-            const { data: materia } = await supabase
-              .from('materias')
-              .select('nombre')
-              .eq('id', clase.materia_id)
-              .single();
-    
-            const { data: profesor } = await supabase
-              .from('profesores')
-              .select('nombre')
-              .eq('id', clase.profesor_id)
-              .single();
-    
-            return {
-              ...clase,
-              materia_nombre: materia?.nombre || 'Desconocido',
-              profesor_nombre: profesor?.nombre || 'Desconocido',
-            };
-          })
-        );
-  
-        setClases(clasesConNombres);
+        setClases(clasesActualizadas);
       })
       .subscribe();
   
@@ -267,7 +194,7 @@ export default function Home() {
     const ocupadosProfesores = new Set();
     const ocupadosSalones = new Set();
   
-    clasesIds.forEach((claseFilter) => {
+    clases.forEach((claseFilter) => {
       if (claseFilter.dia === clase.dia && claseFilter.hora === clase.hora) {
         ocupadosProfesores.add(claseFilter.profesor_id);
         ocupadosSalones.add(`${claseFilter.edificio}-${claseFilter.salon}`);
@@ -307,22 +234,22 @@ export default function Home() {
   const grupoId = e.target.value;
   if (grupoId === 0) {
     setGrupoSeleccionado(null);
-    setClase({
-      profesor_id: '', materia_id: '', tipo: '', grupo_id: '', dia: '', hora: '', edificio: '', salon: ''
+    setClase({...clase,
+      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
     });
     return;
   }
   const grupo = grupos.find(g => g.id == grupoId);
   setGrupoSeleccionado(grupo);
-  setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
+  setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), profesor_nombre: '', materia_nombre: '', materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
 };
 
 
   const manejarAgregar = async () => {
+    console.log(clase);
     if (Object.values(clase).some(val => val === '')) return;
-    const { data: clasesActualizadas } = await supabase.from('clases').select('*');
 
-    if (clasesActualizadas.find(c =>
+    if (clases.find(c =>
       c.dia === clase.dia && c.hora === clase.hora &&
       (c.profesor_id === clase.profesor_id || (c.edificio === clase.edificio && c.salon === clase.salon))
     )) {
@@ -331,66 +258,20 @@ export default function Home() {
     }
 
     await supabase.from('clases').insert(clase);
-    const { data: nuevasClasesIds } = await supabase.from('clases').select('*');
-    const nuevasClases = await Promise.all(
-      clases.map(async (clase) => {
-        const { data: materia } = await supabase
-          .from('materias')
-          .select('nombre')
-          .eq('id', clase.materia_id)
-          .single();
-
-        const { data: profesor } = await supabase
-          .from('profesores')
-          .select('nombre')
-          .eq('id', clase.profesor_id)
-          .single();
-
-        return {
-          ...clase,
-          materia_id: materia?.nombre || clase.materia_id,
-          profesor_id: profesor?.nombre || clase.profesor_id,
-        };
-      })
-    );
-    setClasesIds(nuevasClasesIds);
-    setClases(nuevasClases);
-    setClase({
-      profesor_id: '', materia_id: '', tipo: '', grupo_id: clase.grupo_id, dia: clase.dia, hora: clase.hora, edificio: '', salon: ''
+    setClase({...clase,
+      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
     });
     setCelda(null);
+    setCeldaSeleccionada('');
   };
 
   const manejarBorrar = async () => {
     if (!celda) return;
     await supabase.from('clases').delete().eq('id', celda.id);
-    const { data: nuevasClasesIds } = await supabase.from('clases').select('*');
-    const nuevasClases = await Promise.all(
-      clases.map(async (clase) => {
-        const { data: materia } = await supabase
-          .from('materias')
-          .select('nombre')
-          .eq('id', clase.materia_id)
-          .single();
-
-        const { data: profesor } = await supabase
-          .from('profesores')
-          .select('nombre')
-          .eq('id', clase.profesor_id)
-          .single();
-
-        return {
-          ...clase,
-          materia_id: materia?.nombre || clase.materia_id,
-          profesor_id: profesor?.nombre || clase.profesor_id,
-        };
-      })
-    );
-    setClasesIds(nuevasClasesIds);
-    setClases(nuevasClases);
     setCelda(null);
-    setClase({
-      profesor_id: '', materia_id: '', tipo: '', grupo_id: '', dia: '', hora: '', edificio: '', salon: ''
+    setCeldaSeleccionada('');
+    setClase({...clase,
+      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
     });
   };
 
@@ -435,9 +316,9 @@ export default function Home() {
                         >
                           {claseCelda ? (
                             <>
-                              {claseCelda.materia_id}<br/>
+                              {claseCelda.materia_nombre}<br/>
                               {claseCelda.tipo}<br/>
-                              {claseCelda.profesor_id}<br/>
+                              {claseCelda.profesor_nombre}<br/>
                               {claseCelda.edificio} {claseCelda.salon}
                             </>
                           ) : ''}
@@ -451,16 +332,22 @@ export default function Home() {
 
             <div className="col-4 g-3 mt-3">
               <div className="col-md-6">
-                <select className="form-select" value={clase.profesor_id} onClick={manejarDisponibilidad} onChange={e => setClase({ ...clase, profesor_id: e.target.value })}>
+                <select className="form-select" value={`${clase.profesor_id}|${clase.profesor_nombre ?? ''}`} onClick={manejarDisponibilidad} onChange={e => {
+                    const [id, nombre] = e.target.value.split('|');
+                    setClase({ ...clase, profesor_id: id, profesor_nombre: nombre });
+                  }}>
                   <option value="">Selecciona profesor</option>
                   {
-                    profesoresDisponibles.map(p => <option style={{ color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black'}} key={p.id} value={p.id}>{p.nombre}</option>)}
+                    profesoresDisponibles.map(p => <option style={{ color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black'}} key={p.id} value={`${p.id}|${p.nombre}`}>{p.nombre}</option>)}
                 </select>
               </div>
               <div className="col-md-6 mt-3">
-                <select className="form-select" value={clase.materia_id} onChange={e => setClase({ ...clase, materia_id: e.target.value })}>
+                <select className="form-select" value={`${clase.materia_id}|${clase.materia_nombre ?? ''}`} onChange={e => {
+                    const [id, nombre] = e.target.value.split('|');
+                    setClase({ ...clase, materia_id: id, materia_nombre: nombre });
+                  }}>
                   <option value="">Selecciona materia</option>
-                  {finalMaterias.map(m => <option style={{ color: asignaturas_interes.includes(m.id) ? 'red' : clase.profesor_id ? 'gray' : 'black'}} key={m.id} value={m.id}>{m.nombre}</option>)}
+                  {finalMaterias.map(m => <option style={{ color: asignaturas_interes.includes(m.id) ? 'red' : clase.profesor_id ? 'gray' : 'black'}} key={m.id} value={`${m.id}|${m.nombre}`}>{m.nombre}</option>)}
                 </select>
               </div>
               <div className="col-md-6 mt-3">
@@ -483,7 +370,7 @@ export default function Home() {
               </div>
               <div className='col-md-6 mt-3'>
                 <select className='form-select'
-                  disabled={!edificio}
+                  disabled={!clase.edificio}
                   onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
                 >
                   <option value="">Salón</option>

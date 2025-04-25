@@ -172,30 +172,66 @@ export async function PUT(request: Request) {
 
   if (errorProfesor) return NextResponse.json({ error: errorProfesor.message }, { status: 500 });
 
-  // 2. Elimina las entradas existentes relacionadas (opcional: puedes hacerlo con diff si quieres)
-  const tablasRelacionadas = ['disponibilidad_profesor', 'asignaturas_interes', 'plataformas_digitales', 'cursos_actualizacion'];
-  for (const tabla of tablasRelacionadas) {
-    const { error } = await supabase
-      .from(tabla)
-      .delete()
-      .eq('profesor_id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 501 });
-  }
-
-  // 3. Inserta los nuevos datos relacionados
-  const inserts = [
+  const tablasRelacionadas = [
     { tabla: 'disponibilidad_profesor', datos: disponibilidad },
     { tabla: 'asignaturas_interes', datos: asignaturas_interes },
     { tabla: 'plataformas_digitales', datos: plataformas },
     { tabla: 'cursos_actualizacion', datos: cursos },
   ];
+  
+  // 2. Elimina solo si hay datos nuevos
+  for (const { tabla, datos } of tablasRelacionadas) {
+    if (datos.length > 0) {
+      const { error } = await supabase.from(tabla).delete().eq('profesor_id', id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 501 });
+    }
+  }
+  
+  // 3. Inserta solo si hay datos
+  const insertPromises = tablasRelacionadas
+    .filter(t => t.datos.length > 0)
+    .map(t => supabase.from(t.tabla).insert(t.datos));
+  
+  const results = await Promise.all(insertPromises);
+  
+  for (const result of results) {
+    if (result.error) {
+      return NextResponse.json({ error: result.error.message }, { status: 502 });
+    }
+  }
 
-  inserts.forEach(async(table) => {
-    const { error } = await supabase.from(table.tabla).insert(table.datos);
-    if (error) return NextResponse.json({ error: error.message }, { status: 502 });
-  })
+  // 4. Validación de clases según disponibilidad actualizada
+  const { data: disponibilidadData, error: dispError } = await supabase
+    .from('disponibilidad_profesor')
+    .select('profesor_id, dia, hora')
+    .eq('profesor_id', id);
+
+  if (dispError) {
+    return NextResponse.json({ error: dispError }, { status: 501 });
+  }
+
+  const { data: clasesData, error: clasesError } = await supabase
+    .from('clases')
+    .select('id, profesor_id, dia, hora')
+    .eq('profesor_id', id);
+
+  if (clasesError) {
+    return NextResponse.json({ error: clasesError }, { status: 502 });
+  }
+
+  await Promise.all(clasesData.map(async (clase) => {
+    const disponibilidad = disponibilidadData.find((d) => d.dia === clase.dia && d.hora === clase.hora);
+    if (!disponibilidad) {
+      const { error } = await supabase
+        .from('clases')
+        .delete()
+        .eq('id', clase.id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+  }));
 
   return NextResponse.json({ message: 'Profesor actualizado' }, { status: 200 });
+    
 }
 
 // DELETE eliminar un profesor

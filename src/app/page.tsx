@@ -17,6 +17,12 @@ export default function Home() {
           priority
           className={styles.backgroundImage}
         />
+        <div id="g_id_onload"
+          data-client_id="YOUR_GOOGLE_CLIENT_ID"
+          data-login_uri="https://fhycs-preplanta.vercel.app/"
+          data-your_own_param_1_to_login="any_value"
+          data-your_own_param_2_to_login="any_value">
+      </div>
         <div className={styles.overlay}>
           <h1 className={styles.title}>LICENCIATURAS</h1>
           <ul className={styles.list}>
