@@ -234,23 +234,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const canal = supabase
-      .channel('disponibilidad_profesor-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'disponibilidad_profesor' }, async (payload) => {
-        console.log("Cambio detectado en disponibilidad de profesor:", payload);
-  
-        const { data: disponibilidadActualizada } = await supabase.from('disponibilidad_profesor').select('*');
-  
-        setClases(disponibilidadActualizada);
-      })
-      .subscribe();
-  
-    return () => {
-      supabase.removeChannel(canal);
-    };
-  }, []);
-
   const manejarClickCelda = (dia: string, hora: string) => {
     const claseExistente = clases.find(c => c.grupo_id === grupoSeleccionado.id && c.dia === dia && c.hora === hora);
     setCelda(claseExistente);
