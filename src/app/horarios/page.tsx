@@ -19,6 +19,8 @@ export default function Home() {
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
   const [grupoSemestre, setGrupoSemestre] = useState('');
   const [profesorDisponibilidad, setProfesorDisponibilidad] = useState([]);
+  const [profesorSeleccionadoDisponibilidad, setProfesorSeleccionadoDisponibilidad] = useState([]);
+  const [celdasDisponibles, setCeldasDisponibles] = useState([]);
   const [profesores, setProfesores] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [programas_materias, setProgramasMaterias] = useState([]);
@@ -137,7 +139,38 @@ export default function Home() {
     if (clase.profesor_id) {
       fetchAsignaturasInteres();
     }
+    setProfesorSeleccionadoDisponibilidad([]);
+    setCeldasDisponibles([]);
+    if (!clase.profesor_id) return;
+    profesorDisponibilidad.forEach((disponibilidad) => {
+      if (disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == disponibilidad.hora && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id))=== undefined) {
+        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(disponibilidad.hora)}`}]);
+        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(parseInt(disponibilidad.hora) + 1)==9 ? '09' : (parseInt(disponibilidad.hora) + 1)}`}]);
+      }
+      else if (disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == '08' && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id))!== undefined) {
+        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: '09'}]);
+      }
+      else if(disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == (parseInt(disponibilidad.hora) + 1) && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id)) === undefined) {
+        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(parseInt(disponibilidad.hora) + 1)}`}]);
+      }
+    });
+    
   }, [clase.profesor_id]);
+
+  useEffect(() => {
+    if(profesorDisponibilidad.length === 0) return;
+    if(profesorSeleccionadoDisponibilidad.length === 0) return;
+    dias.forEach((dia) => {
+      horas.forEach((hora) => {
+        profesorSeleccionadoDisponibilidad.forEach((disponibilidad) => {
+          if (disponibilidad.dia === dia && disponibilidad.hora === hora) {
+            setCeldasDisponibles(prev => [...prev, `${dia}${hora}`]);
+          }
+        });
+      });
+    });
+    console.log(profesorSeleccionadoDisponibilidad)
+  }, [profesorSeleccionadoDisponibilidad]);
 
   useEffect(() => {
     const materiaSelecc = async () => {
@@ -201,6 +234,23 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const canal = supabase
+      .channel('disponibilidad_profesor-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'disponibilidad_profesor' }, async (payload) => {
+        console.log("Cambio detectado en disponibilidad de profesor:", payload);
+  
+        const { data: disponibilidadActualizada } = await supabase.from('disponibilidad_profesor').select('*');
+  
+        setClases(disponibilidadActualizada);
+      })
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, []);
+
   const manejarClickCelda = (dia: string, hora: string) => {
     const claseExistente = clases.find(c => c.grupo_id === grupoSeleccionado.id && c.dia === dia && c.hora === hora);
     setCelda(claseExistente);
@@ -212,6 +262,7 @@ export default function Home() {
     const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`);
     setGrupos(gruposData);
     setCeldaSeleccionada('');
+    setClase({...clase, dia: '', hora: ''})
   };
 
   const manejarDisponibilidad = () => {
@@ -353,7 +404,7 @@ export default function Home() {
                       return (
                         <td
                           key={dia + hora}
-                          className={`p-2 ${celdaSeleccionada === dia+hora ? 'table-primary' : ''}`}
+                          className={`p-2 ${celdaSeleccionada === dia+hora ? 'table-info' : (celdasDisponibles.includes(dia+hora)) ? 'table-success border border-secondary' : ''}`}
                           role="button"
                           onClick={() => {
                             manejarClickCelda(dia, hora);
@@ -384,7 +435,10 @@ export default function Home() {
                   }}>
                   <option value="">Selecciona profesor</option>
                   {
-                    profesoresDisponibles.map(p => <option style={{ color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black'}} key={p.id} value={`${p.id}|${p.nombre}`}>{p.nombre}</option>)}
+                        profesoresDisponibles.map(p => <option style={{ 
+                          color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black',
+                          }} key={p.id} value={`${p.id}|${p.nombre}`}>{p.nombre}</option>)
+                  }
                 </select>
               </div>
               <div className="col-md-6 mt-3">
@@ -426,7 +480,7 @@ export default function Home() {
                 </select>
               </div>
               <div className="mt-3 gap-3">
-              <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.values(clase).some(val => val === '')}>
+              <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.values(clase).some(val => val === '') || celda}>
                 Agregar
               </button>
               <button className="btn btn-danger ms-3" onClick={manejarBorrar} disabled={!celda}>

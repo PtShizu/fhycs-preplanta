@@ -72,6 +72,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         .eq('programa_id', id)
         .order('tipo')
         .order('etapa', { ascending: true }) // Opcional
+        .order('semestre', { ascending: true }) // Opcional
         setMateriasData(data);
       } catch (error) {
         console.error(error);
