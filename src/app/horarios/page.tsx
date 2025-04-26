@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Nav from '../Nav';
 import { supabase } from '@/lib/supabase-client';
 import { useSessionContext, useUser } from '@supabase/auth-helpers-react';

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from 'next/navigation';
+import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
 
 interface DeleteButtonProps {
     edificio: string;
@@ -10,9 +11,14 @@ interface DeleteButtonProps {
 
 export default function DeleteButton({edificio, num}: DeleteButtonProps){
     const router = useRouter();
+    const user = useUser();
+    const { isLoading } = useSessionContext();
+
+    if (isLoading) return <div>Cargando...</div>;
 
     return(
         <button className="btn btn-danger" type="button" onClick={async () => {
+          if (!user) return <div>No autenticado</div>;
             try {
                 const response = await fetch('/api/salones', {
                   method: 'DELETE',

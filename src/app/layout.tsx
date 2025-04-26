@@ -22,8 +22,6 @@ export const metadata: Metadata = {
 
 // Componente para el cliente (necesario para UserProvider)
 const SupabaseProviderLocal = ({ children }: { children: React.ReactNode }) => {
-  const supabaseClient = supabase;
-  
   return (
     <SupabaseProviderLib>
       {children}
@@ -40,10 +38,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {/* Envuelve children con SupabaseProvider */}
-        <SupabaseProviderLib>
+        <SupabaseProviderLocal>
           {children}
           <BootstrapClient />
-        </SupabaseProviderLib>
+        </SupabaseProviderLocal>
       </body>
     </html>
   );
