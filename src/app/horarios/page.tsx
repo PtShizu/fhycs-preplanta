@@ -1,16 +1,21 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Nav from '../Nav';
 import { supabase } from '@/lib/supabase-client';
+import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
 
 export default function Home() {
+  const { isLoading } = useSessionContext();
+  const user = useUser();
+
   const [programa, setPrograma] = useState({
     id: '',
     nombre: '' ,
     numero_grupo: ''
   });
   const [grupos, setGrupos] = useState([]);
+  const [userData, setUserData] = useState(null);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
   const [grupoSemestre, setGrupoSemestre] = useState('');
   const [profesorDisponibilidad, setProfesorDisponibilidad] = useState([]);
@@ -43,16 +48,19 @@ export default function Home() {
 
   const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
   const horas = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
+  let coordinaFlag = false;
 
   useEffect(() => {
+    if (isLoading || !user) return;
+
     const fetchData = async () => {
-      const { data: programasData } = await supabase.from('programas_educativos').select('*').eq('nombre', "Ciencias de la comunicación").single();
+      const { data: userData } = await supabase.from('profesores').select('coordina').eq('correo', user.email).single();
       const { data: profesoresData } = await supabase.from('profesores').select('*');
       const { data: materiasData } = await supabase.from('materias').select('*');
       const { data: clasesData } = await supabase.from('clases').select('*');
       const { data: profesorDisponibilidadData } = await supabase.from('disponibilidad_profesor').select('*');
       const { data: salonesData } = await supabase.from('salones').select('*');
-      setPrograma(programasData);
+      setUserData(userData);
       setSalones(salonesData);
       setProfesores(profesoresData);
       setMaterias(materiasData);
@@ -61,7 +69,23 @@ export default function Home() {
       
     };
     fetchData();
-  }, []);
+  }, [isLoading, user]);
+
+  useEffect(() => {
+    coordinaFlag = true;
+    const fetchPrograma = async () => {
+      if (!userData.coordina) return;
+      const { data: programaData } = await supabase.from('programas_educativos').select('*').eq('nombre', userData.coordina || '').single();
+      if (!programaData) {
+        console.error('No se encontró el programa educativo para el usuario:', userData.coordina);
+        return;
+      }
+      setPrograma(programaData);
+    }
+    if (userData) {
+      fetchPrograma();
+    }
+  },[userData]);
 
   useEffect(() => {
     const fetchProgramasMaterias = async () => {
@@ -275,6 +299,26 @@ export default function Home() {
     });
   };
 
+  const isNotCoordinador = userData && programa.id === '' && !coordinaFlag; // Evalúa permisos solo si userData está disponible
+  const isLoadingGrupos = !userData; // Carga grupos solo si el usuario tiene permisos y programa no está cargado
+  const isCheckingCoordinador = !coordinaFlag && !user; // Solo verifica coordinador si el usuario ya está cargado
+
+  const getEstado = () => {
+    if (isCheckingCoordinador) {
+      return 'No has iniciado sesión';
+    }
+    if (isNotCoordinador) {
+      return 'No tienes permisos para ver los grupos.';
+    }
+    if (isLoadingGrupos) {
+      return 'Cargando usuario...';
+    }
+    return 'Selecciona un grupo';
+  };
+
+
+  if (isLoading) return <div>Cargando...</div>;
+
   return (
     <div>
       <Nav />
@@ -282,7 +326,9 @@ export default function Home() {
 
         <div className="mt-4">
           <select className="form-select" disabled={!programa.id ? true : false} onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
-            {!grupoSeleccionado && <option value={0}>{programa.id ? 'Selecciona un grupo' : 'Cargando grupos...'}</option>}
+            {!grupoSeleccionado && <option value={0}>
+              {getEstado()}
+            </option>}
             {grupos.map(g => (
               <option key={g.id} value={g.id}>{g.nombre}</option>
             ))}

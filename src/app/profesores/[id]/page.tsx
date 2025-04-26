@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/app/Nav';
 import { supabase } from '@/lib/supabase-client';
+import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
 
 function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: number, dia: string, hora: string}[]) {
   let found = false;
@@ -18,6 +19,8 @@ function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: nu
 }
 
 export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
+  const { isLoading } = useSessionContext();
+  const user = useUser();
   const router = useRouter();
   const { id } = use(params);
   const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
@@ -78,6 +81,10 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
     }
   };
 
+  if (isLoading) return <div>Cargando...</div>;
+
+  if (!user) return <div>Acceso denegado</div>;
+
   return (
     <div>
         <Nav></Nav>
@@ -88,7 +95,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <label className="form-label">Nombre</label>
             <input
                 type="text"
-                defaultValue={formData.nombre}
+                defaultValue={formData.nombre || ''}
                 className="form-control"
                 onChange={(e) => setFormData({...formData, nombre: e.target.value})}
                 required
@@ -98,7 +105,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <label className="form-label">Número de empleado</label>
             <input
                 type="text"
-                defaultValue={formData.num_empleado}
+                defaultValue={formData.num_empleado || ''}
                 className="form-control"
                 onChange={(e) => setFormData({...formData, num_empleado: e.target.value})}
                 required
@@ -108,12 +115,13 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <label className="form-label">Correo</label>
             <input
                 type="text"
-                defaultValue={formData.correo}
+                defaultValue={formData.correo || ''}
                 className="form-control"
                 onChange={(e) => setFormData({...formData, correo: e.target.value})}
                 required
             />
             </div>
+            {user?.email == 'subdireccion.fhycstij@uabc.edu.mx' ? 
             <div className="mb-3">
             <label className="form-label">Coordina</label>
             <div className='dropdown'>
@@ -128,6 +136,8 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
               </ul>
             </div>
             </div>
+            : <div/>
+            }
             <table className="table table-bordered text-center align-middle mt-3">
               <thead className="table-light">
                 <tr>
@@ -176,7 +186,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                   type="text"
                   className="form-control"
                   placeholder="Asignatura"
-                  value={asig.materia_id}
+                  value={asig.materia_id || ''}
                   onChange={(e) => {
                     const updated = [...formData.asignaturas_interes];
                     updated[index].materia_id = e.target.value;
@@ -188,7 +198,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                   type="text"
                   className="form-control"
                   placeholder="Requerimientos"
-                  value={asig.requerimientos}
+                  value={asig.requerimientos || ''}
                   onChange={(e) => {
                     const updated = [...formData.asignaturas_interes];
                     updated[index].requerimientos = e.target.value;
@@ -229,7 +239,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                   key={index}
                   type="text"
                   className="form-control mb-2"
-                  value={curso.nombre}
+                  value={curso.nombre || ''}
                   onChange={(e) => {
                     const updated = [...formData.cursos];
                     updated[index].nombre = e.target.value;
@@ -271,7 +281,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                   key={index}
                   type="text"
                   className="form-control mb-2"
-                  value={plat.nombre}
+                  value={plat.nombre || ''}
                   onChange={(e) => {
                     const updated = [...formData.plataformas];
                     updated[index].nombre = e.target.value;
@@ -309,7 +319,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
             <label className='form-label'><b>Otros programas</b></label>
             <textarea
               className='form-control'
-              value={formData.otros_programas}
+              value={formData.otros_programas || ''}
               onChange={(e) => setFormData({...formData, otros_programas: e.target.value})}
             />
           </div>

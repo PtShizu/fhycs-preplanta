@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BootstrapClient from '@/components/BootstrapClient';
+import SupabaseProviderLib from "@/lib/supabase-provider";
+import { supabase } from '@/lib/supabase-client'; // Asegúrate de tener este archivo
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +20,17 @@ export const metadata: Metadata = {
   description: "Plataforma para gestión de pre-planta",
 };
 
+// Componente para el cliente (necesario para UserProvider)
+const SupabaseProviderLocal = ({ children }: { children: React.ReactNode }) => {
+  const supabaseClient = supabase;
+  
+  return (
+    <SupabaseProviderLib>
+      {children}
+    </SupabaseProviderLib>
+  );
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,8 +39,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-        <BootstrapClient /> {/* ¡Esto es crucial! */}
+        {/* Envuelve children con SupabaseProvider */}
+        <SupabaseProviderLib>
+          {children}
+          <BootstrapClient />
+        </SupabaseProviderLib>
       </body>
     </html>
   );
