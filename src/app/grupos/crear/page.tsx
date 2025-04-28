@@ -45,7 +45,7 @@ export default function CrearSalon() {
           <div className="mb-3">
             <label className="form-label">Etapa</label>
             <select
-              defaultValue={grupo.etapa}
+              defaultValue={formData.etapa}
               className="form-control"
               onChange={(e) => {
                 setFormData({...formData, etapa: e.target.value});
