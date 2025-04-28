@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Nav from '../Nav';
 import { supabase } from '@/lib/supabase-client';
 import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const { isLoading } = useSessionContext();
@@ -34,6 +35,7 @@ export default function Home() {
   const [profesores_interes, setProfesoresInteres] = useState([]);
   const [salonesDisponibles, setSalonesDisponibles] = useState([]);
   const [tiposClase, setTiposClase] = useState<string[]>([]);
+  const [programaGrupo, setProgramaGrupo] = useState();
   const [clase, setClase] = useState({
     profesor_id: '',
     profesor_nombre: '',
@@ -103,6 +105,17 @@ export default function Home() {
   },[programa])
 
   useEffect(() => {
+    const fetchPrograma = async () => {
+      const { data: programaData, error: programaError } = await supabase.from('programas_educativos').select('*').eq('numero_grupo', parseInt(programaGrupo)).single()
+      if(programaError) return programaError
+      setPrograma(programaData);
+    }
+    if(programaGrupo)
+      fetchPrograma();
+  }, [programaGrupo])
+
+  useEffect(() => {
+    setProgramaGrupo(grupoSeleccionado?.nombre.split('')[0]);
     setGrupoSemestre(grupoSeleccionado?.nombre.split('')[1]);
   }, [grupoSeleccionado]);
 
@@ -116,7 +129,7 @@ export default function Home() {
         }
       });
     });
-  },[grupoSemestre]);
+  },[programas_materias, grupoSemestre]);
 
   useEffect(() => {
     if(clase.dia && clase.hora) {
@@ -142,18 +155,38 @@ export default function Home() {
     setProfesorSeleccionadoDisponibilidad([]);
     setCeldasDisponibles([]);
     if (!clase.profesor_id) return;
+
+    const nuevasDisponibilidades: { dia: string; hora: string }[] = [];
+
     profesorDisponibilidad.forEach((disponibilidad) => {
-      if (disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == disponibilidad.hora && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id))=== undefined) {
-        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(disponibilidad.hora)}`}]);
-        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(parseInt(disponibilidad.hora) + 1)==9 ? '09' : (parseInt(disponibilidad.hora) + 1)}`}]);
+      if (disponibilidad.profesor_id != clase.profesor_id) return;
+
+      const dia = disponibilidad.dia;
+      const horaActual = disponibilidad.hora;
+      const horaSiguiente = (parseInt(horaActual) + 1).toString().padStart(2, '0'); // siempre formato '08', '09', etc.
+
+      const hayClaseEnHoraActual = clases.find(c =>
+        c.dia == dia &&
+        c.hora == horaActual &&
+        (c.grupo_id == grupoSeleccionado.id || c.profesor_id == clase.profesor_id)
+      );
+
+      const hayClaseEnHoraSiguiente = clases.find(c =>
+        c.dia == dia &&
+        c.hora == horaSiguiente &&
+        (c.grupo_id == grupoSeleccionado.id || c.profesor_id == clase.profesor_id)
+      );
+
+      if (!hayClaseEnHoraActual) {
+        nuevasDisponibilidades.push({ dia, hora: horaActual });
       }
-      else if (disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == '08' && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id))!== undefined) {
-        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: '09'}]);
-      }
-      else if(disponibilidad.profesor_id == clase.profesor_id && clases.find(c => c.dia == disponibilidad.dia && c.hora == (parseInt(disponibilidad.hora) + 1) && (c.grupo_id==grupoSeleccionado.id || c.profesor_id==clase.profesor_id)) === undefined) {
-        setProfesorSeleccionadoDisponibilidad(prev => [...prev, {dia: `${disponibilidad.dia}`, hora: `${(parseInt(disponibilidad.hora) + 1)}`}]);
+
+      if (!hayClaseEnHoraSiguiente) {
+        nuevasDisponibilidades.push({ dia, hora: horaSiguiente });
       }
     });
+
+    setProfesorSeleccionadoDisponibilidad(prev => [...prev, ...nuevasDisponibilidades]);
     
   }, [clase.profesor_id]);
 
@@ -169,7 +202,6 @@ export default function Home() {
         });
       });
     });
-    console.log(profesorSeleccionadoDisponibilidad)
   }, [profesorSeleccionadoDisponibilidad]);
 
   useEffect(() => {
@@ -242,8 +274,14 @@ export default function Home() {
   };
 
   const manejarGrupos = async () => {
-    const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`);
-    setGrupos(gruposData);
+    if(userData.coordina == 'Facultad'){
+      const { data: gruposData } = await supabase.from('grupos').select('*');
+      setGrupos(gruposData);
+    }
+    else{
+      const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`);
+      setGrupos(gruposData);
+    }
     setCeldaSeleccionada('');
     setClase({...clase, dia: '', hora: ''})
   };
@@ -262,17 +300,21 @@ export default function Home() {
     const retSalones = salones.filter(salon => !ocupadosSalones.has(`${salon.edificio}-${salon.num}`)
     );
   
-    const retProfesores = profesores.filter((profesor) =>
-      profesorDisponibilidad.some((disponibilidad) =>
-        disponibilidad.profesor_id === profesor.id &&
-        disponibilidad.dia === clase.dia &&
-        (disponibilidad.hora === clase.hora || parseInt(disponibilidad.hora) + 1 === parseInt(clase.hora)) &&
-        !ocupadosProfesores.has(profesor.id)
-      )
-    );
-  
     setSalonesDisponibles(retSalones);
-    setProfesoresDisponibles(retProfesores);
+
+    if(clase.dia && clase.hora){
+      const retProfesores = profesores.filter((profesor) =>
+        profesorDisponibilidad.some((disponibilidad) =>
+          disponibilidad.profesor_id === profesor.id &&
+          disponibilidad.dia === clase.dia &&
+          (disponibilidad.hora === clase.hora || parseInt(disponibilidad.hora) + 1 === parseInt(clase.hora)) &&
+          !ocupadosProfesores.has(profesor.id)
+        )
+      );
+    
+      setProfesoresDisponibles(retProfesores);
+    }
+    
   };
   
 
@@ -289,22 +331,21 @@ export default function Home() {
   };
       
   const manejarSeleccionGrupo = (e) => {
-  const grupoId = e.target.value;
-  if (grupoId === 0) {
-    setGrupoSeleccionado(null);
-    setClase({...clase,
-      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
-    });
-    return;
-  }
-  const grupo = grupos.find(g => g.id == grupoId);
-  setGrupoSeleccionado(grupo);
-  setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), profesor_nombre: '', materia_nombre: '', materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
-};
+    const grupoId = e.target.value;
+    if (grupoId === 0) {
+      setGrupoSeleccionado(null);
+      setClase({...clase,
+        profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
+      });
+      return;
+    }
+    const grupo = grupos.find(g => g.id == grupoId);
+    setGrupoSeleccionado(grupo);
+    setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), profesor_nombre: '', materia_nombre: '', materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
+  };
 
 
   const manejarAgregar = async () => {
-    console.log(clase);
     if (Object.values(clase).some(val => val === '')) return;
 
     if (clases.find(c =>
@@ -321,6 +362,7 @@ export default function Home() {
     });
     setCelda(null);
     setCeldaSeleccionada('');
+    toast.success('Clase agregada')
   };
 
   const manejarBorrar = async () => {
@@ -331,7 +373,73 @@ export default function Home() {
     setClase({...clase,
       profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
     });
+    toast.success('Clase eliminada')
   };
+
+  const manejarVirtual = async (tipo: string) => {
+    if (!celda) return;
+    await supabase.from('clases').update({virtual: tipo}).eq('id', celda.id)
+    if(tipo)
+      toast.success('Marcada como '+tipo)
+    if(!tipo)
+      toast.success('Marca quitada')
+  }
+
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+    clase: any | null;
+  } | null>(null);
+  
+  const contextMenuRef = useRef<HTMLDivElement | null>(null);
+  
+  const handleContextMenu = (e: React.MouseEvent, clase: any | null) => {
+    e.preventDefault();
+    if (clase) {
+      setContextMenu({
+        mouseX: e.pageX,
+        mouseY: e.pageY,
+        clase: clase,
+      });
+    }
+  };
+
+  const handleCopyClase = () => {
+    setProfesoresDisponibles(profesores)
+    setSalonesDisponibles(salones)
+    setCeldaSeleccionada('')
+    if (contextMenu?.clase) {
+      setEdificio(contextMenu.clase.edificio)
+      setClase({
+        profesor_id: contextMenu.clase.profesor_id, 
+        profesor_nombre: contextMenu.clase.profesor_nombre,
+        materia_id: contextMenu.clase.materia_id,
+        materia_nombre: contextMenu.clase.materia_nombre,
+        grupo_id: contextMenu.clase.grupo_id,
+        edificio: contextMenu.clase.edificio,
+        salon: contextMenu.clase.salon,
+        dia: '',
+        hora: '',
+        tipo: contextMenu.clase.tipo
+      })
+      toast.success('Clase copiada');
+    }
+    setContextMenu(null);
+  };
+  
+  // Aquí agregamos el listener
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      setContextMenu(null); // Cierra el menú si se hace click fuera
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+  
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
 
   const isNotCoordinador = userData && programa.id === '' && !coordinaFlag; // Evalúa permisos solo si userData está disponible
   const isLoadingGrupos = !userData; // Carga grupos solo si el usuario tiene permisos y programa no está cargado
@@ -389,26 +497,40 @@ export default function Home() {
                           key={dia + hora}
                           className={`p-2 ${celdaSeleccionada === dia+hora ? 'table-info' : (celdasDisponibles.includes(dia+hora)) ? 'table-success border border-secondary' : ''}`}
                           role="button"
+                          onContextMenu={(e) => handleContextMenu(e, claseCelda)}
                           onClick={() => {
                             manejarClickCelda(dia, hora);
                             setCeldaSeleccionada(dia+hora);
                           }}
                         >
                           {claseCelda ? (
-                            <>
+                            <div className={`${claseCelda?.virtual=='síncrona' ? 'text-danger' : claseCelda?.virtual=='asíncrona' ? 'text-warning' : 'text-black'}`}>
                               {claseCelda.materia_nombre}<br/>
                               {claseCelda.tipo}<br/>
                               {claseCelda.profesor_nombre}<br/>
                               {claseCelda.edificio} {claseCelda.salon}
-                            </>
+                            </div>
                           ) : ''}
                         </td>
                       );
                     })}
+                    
                   </tr>
                 ))}
               </tbody>
             </table>
+            {contextMenu && (
+                      <button
+                        className="btn position-absolute bg-white border rounded shadow p-2"
+                        style={{ top: contextMenu.mouseY, left: contextMenu.mouseX, zIndex: 1000, width: '7%' }}
+                        onClick={() => {
+                          handleCopyClase(); // Aquí llamas a la función para copiar
+                          setContextMenu(null); // Esto cierra el menú después de hacer clic
+                        }}
+                      >
+                        Copiar clase
+                      </button>
+                    )}
 
             <div className="col-4 g-3 mt-3">
               <div className="col-md-6">
@@ -454,6 +576,7 @@ export default function Home() {
               <div className='col-md-6 mt-3'>
                 <select className='form-select'
                   disabled={!clase.edificio}
+                  value={clase.salon}
                   onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
                 >
                   <option value="">Salón</option>
@@ -469,6 +592,18 @@ export default function Home() {
               <button className="btn btn-danger ms-3" onClick={manejarBorrar} disabled={!celda}>
                 Borrar
               </button>
+              <div className='col mt-3'>
+                <button className="row btn btn-danger ms-1" onClick={() => manejarVirtual('síncrona')} disabled={!celda}>
+                  Marcar Virtual Síncrona
+                </button>
+                <button className="row btn btn-warning ms-1 mt-3" onClick={() => manejarVirtual('asíncrona')} disabled={!celda}>
+                  Marcar Virtual Asíncrona
+                </button>
+                <button className="row btn btn-dark ms-1 mt-3" onClick={() => manejarVirtual('')} disabled={!celda}>
+                  Quitar Marca Virtual
+                </button>
+              </div>
+              
             </div>
             </div>
 
