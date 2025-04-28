@@ -22,6 +22,7 @@ export default async function Salones() {
                     <thead>
                         <tr className="ptbs-3">
                             <th scope="col">Número</th>
+                            <th scope="col">Etapa</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -29,6 +30,7 @@ export default async function Salones() {
                         {grupos?.map(grupo =>(
                             <tr className="salon" key={grupo.id}>
                                 <th scope="row">{grupo.nombre}</th>
+                                <td>{grupo.etapa}</td>
                                 <td className="w-25">
                                     <div className="container">
                                         <button className="btn btn-secondary me-2"><Link href={"/grupos/"+grupo.id}>Editar</Link></button>
