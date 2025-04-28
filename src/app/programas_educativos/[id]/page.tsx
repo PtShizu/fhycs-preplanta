@@ -272,7 +272,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         materia_id: data?.id || null,
         clave: data?.clave || '',
         nombre: data?.nombre || null,
-        tipo: data?.tipo || null,
+        tipo: data?.tipo || 'obligatoria',
         etapa: data?.etapa || null,
         horas_clase: data?.horas_clase || null,
         horas_taller: data?.horas_taller || null,
