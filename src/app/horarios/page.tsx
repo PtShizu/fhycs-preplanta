@@ -59,8 +59,8 @@ export default function Home() {
 
     const fetchData = async () => {
       const { data: userData } = await supabase.from('profesores').select('coordina').eq('correo', user.email).single();
-      const { data: profesoresData } = await supabase.from('profesores').select('*');
-      const { data: materiasData } = await supabase.from('materias').select('*');
+      const { data: profesoresData } = await supabase.from('profesores').select('*').order('nombre');
+      const { data: materiasData } = await supabase.from('materias').select('*').order('nombre');
       const { data: clasesData } = await supabase.from('clases').select('*');
       const { data: profesorDisponibilidadData } = await supabase.from('disponibilidad_profesor').select('*');
       const { data: salonesData } = await supabase.from('salones').select('*');
