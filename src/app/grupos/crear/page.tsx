@@ -10,6 +10,7 @@ export default function CrearSalon() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     nombre: '',
+    etapa: 'básica'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +41,22 @@ export default function CrearSalon() {
                 onChange={(e) => setFormData({...formData, nombre: e.target.value})}
                 required
             />
+            </div>
+          <div className="mb-3">
+            <label className="form-label">Etapa</label>
+            <select
+              defaultValue={grupo.etapa}
+              className="form-control"
+              onChange={(e) => {
+                setFormData({...formData, etapa: e.target.value});
+              }}
+            >
+                <>
+                  <option value="básica">básica</option>
+                  <option value="disciplinaria">disciplinaria</option>
+                  <option value="terminal">terminal</option>
+                </>
+            </select>
             </div>
             <button type="submit" className="btn btn-primary me-2 mt-3" onClick={handleSubmit}>
             Guardar
