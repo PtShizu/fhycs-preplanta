@@ -120,11 +120,11 @@ export default function Home() {
   }, [grupoSeleccionado]);
 
   useEffect(() => {
-    finalMaterias.length = 0; // Limpiar el array antes de llenarlo
+    .length = 0; // Limpiar el array antes de llenarlo
     if (!grupoSemestre) return; // Asegurarse de que grupoSemestre no esté vacío
     materias.forEach((materia) => {
       programas_materias.forEach((programa) => {
-        if (materia.id == programa.materia_id && programa.semestre == grupoSemestre) {
+        if (materia.id == programa.materia_id && (programa.semestre == grupoSemestre || (programa.etapa == grupoSeleccionado.etapa && !programa.semestre) || !programa.etapa)) {
           setFinalMaterias(prev => [...prev, materia]);
         }
       });
