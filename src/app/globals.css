@@ -49,3 +49,20 @@ a {
     color-scheme: dark;
   }
 }
+
+.modal-header-full {
+  width: 100%;
+}
+
+.modal-header {
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 0;
+}
+
+.modal-title-centered {
+  text-align: center;
+  width: 100%;
+}

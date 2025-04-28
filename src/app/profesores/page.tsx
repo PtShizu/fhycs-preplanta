@@ -1,13 +1,29 @@
-import React from "react";
+'use client';
+
+import { useState, useEffect } from "react";
+import { Modal } from "react-bootstrap";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
 import GenericDeleteBttn from "@/components/GenericDeleteBttn";
+import GenerarHorarioVista from "@/components/GenerarHorarioVista";
 
-export const revalidate = 0;
+export default function Profesores() {
+    const [profesores, setProfesores] = useState([]);
+    const [selectedProfesorId, setSelectedProfesorId] = useState(null); // Estado para el profesor seleccionado
 
-export default async function Salones() {
-    const { data: profesores } = await supabase.from('profesores').select('*').order("nombre");
+    useEffect(() => {
+        const fetchProfesores = async () => {
+            const { data, error } = await supabase.from('profesores').select('*').order("nombre");
+            if (error) {
+                console.error("Error fetching profesores:", error);
+            } else {
+                setProfesores(data || []);
+            }
+        };
+
+        fetchProfesores();
+    }, []);
 
     return (
         <main>
@@ -29,7 +45,7 @@ export default async function Salones() {
                         </tr>
                     </thead>
                     <tbody>
-                        {profesores?.map(profesor =>(
+                        {profesores.map(profesor =>(
                             <tr className="profesor" key={profesor.id}>
                                 <th scope="row">{profesor.num_empleado}</th>
                                 <td>{profesor.nombre}</td>
@@ -39,6 +55,23 @@ export default async function Salones() {
                                     <div className="container">
                                         <button className="btn btn-secondary me-2"><Link href={"/profesores/"+profesor.id}>Editar</Link></button>
                                         <GenericDeleteBttn id={profesor.id} api={"profesores"}/>
+                                        <>
+                                            <button
+                                                className="btn btn-success ms-2"
+                                                onClick={() => setSelectedProfesorId(profesor.id)} // Establece el profesor seleccionado
+                                            >
+                                                Ver Horario
+                                            </button>
+
+                                            <Modal
+                                                show={selectedProfesorId === profesor.id} // Muestra el modal solo para el profesor seleccionado
+                                                onHide={() => setSelectedProfesorId(null)} // Cierra el modal
+                                            >
+                                                <Modal.Body className="modal-header modal-header-full">
+                                                    <GenerarHorarioVista id={profesor.id} tipo='profesor' />
+                                                </Modal.Body>
+                                            </Modal>
+                                        </>
                                     </div>
                                 </td>
                             </tr>
