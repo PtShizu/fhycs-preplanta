@@ -12,10 +12,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { nombre } = await request.json();
+  const { nombre, etapa } = await request.json();
   const { data, error } = await supabase
     .from('grupos')
-    .insert({ nombre });
+    .insert({ nombre, etapa });
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
 // PUT/PATCH actualizar un programa educativo existente
 export async function PUT(request: Request) {
-  const { id, nombre } = await request.json();
+  const { id, nombre, etapa } = await request.json();
   
   // Verificar que el id existe
   if (!id) {
@@ -37,7 +37,7 @@ export async function PUT(request: Request) {
 
   const { data, error } = await supabase
     .from('grupos')
-    .update({ nombre })
+    .update({ nombre, etapa })
     .eq('id', id); // Usamos el id para identificar el registro a actualizar
 
   if (error) {
