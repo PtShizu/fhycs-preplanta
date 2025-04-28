@@ -388,11 +388,11 @@ export default function Home() {
   const [contextMenu, setContextMenu] = useState<{
     mouseX: number;
     mouseY: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     clase: any | null;
   } | null>(null);
   
-  const contextMenuRef = useRef<HTMLDivElement | null>(null);
-  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleContextMenu = (e: React.MouseEvent, clase: any | null) => {
     e.preventDefault();
     if (clase) {
@@ -429,7 +429,7 @@ export default function Home() {
   
   // Aquí agregamos el listener
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = () => {
       setContextMenu(null); // Cierra el menú si se hace click fuera
     };
     

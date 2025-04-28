@@ -164,6 +164,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   
   }, [materiasSeleccionadas]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateField = async (id: string, column: string, value: any) => {
     try {
       if(column === 'delete'){
@@ -204,6 +205,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         creditos: m.creditos
       }));
   
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let nuevasIds: any[] = [];
       if (materiasParaInsertar.length > 0) {
         const { data, error: error2 } = await supabase
@@ -261,6 +263,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
 
   
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleNuevaMateriaVacia = (data?: any) => {
     toast.success('Materia agregada')
     setNuevasMaterias((prev) => [
