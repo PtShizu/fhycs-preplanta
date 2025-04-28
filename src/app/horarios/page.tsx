@@ -120,7 +120,7 @@ export default function Home() {
   }, [grupoSeleccionado]);
 
   useEffect(() => {
-    .length = 0; // Limpiar el array antes de llenarlo
+    finalMaterias.length = 0; // Limpiar el array antes de llenarlo
     if (!grupoSemestre) return; // Asegurarse de que grupoSemestre no esté vacío
     materias.forEach((materia) => {
       programas_materias.forEach((programa) => {
