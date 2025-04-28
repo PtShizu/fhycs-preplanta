@@ -220,7 +220,7 @@ export async function PUT(request: Request) {
   }
 
   await Promise.all(clasesData.map(async (clase) => {
-    const disponibilidad = disponibilidadData.find((d) => d.dia === clase.dia && d.hora === clase.hora);
+    const disponibilidad = disponibilidadData.find((d) => d.dia === clase.dia && (d.hora === clase.hora || parseInt(d.hora)+1==parseInt(clase.hora)));
     if (!disponibilidad) {
       const { error } = await supabase
         .from('clases')
