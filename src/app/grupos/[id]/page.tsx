@@ -62,7 +62,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
           <div className="mb-3">
             <label className="form-label">Etapa</label>
             <select
-              defaultValue={grupo.etapa}
+              defaultValue={formData.etapa}
               className="form-control"
               onChange={(e) => {
                 setFormData({...formData, etapa: e.target.value});
