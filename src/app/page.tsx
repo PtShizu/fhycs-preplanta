@@ -6,6 +6,7 @@ import Image from 'next/image';
 import styles from './page.module.css';
 import facultad from '../../facultad.jpg'
 import { supabase } from '@/lib/supabase-client';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -15,6 +16,7 @@ export default function Home() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserEmail(user.email);
+        toast.success('Sesión iniciada con éxito');
       }
     });
 
@@ -39,7 +41,16 @@ export default function Home() {
     });
   
     if (error) console.error('Error al iniciar sesión:', error.message);
+    
+    else toast.success('Redirigiendo a Google para iniciar sesión...');
   };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error al cerrar sesión:', error.message);
+    setUserEmail(null); // Limpiar el estado del email del usuario
+    toast.success('Sesión cerrada con éxito');
+  }
   
 
   return (
@@ -59,26 +70,26 @@ export default function Home() {
             Facultad de Humanidades y Ciencias Sociales
           </h5>
 
-          {userEmail ? (
-            <p className="text-white">Sesión iniciada como: {userEmail}</p>
-          ) : (
-            <button className='btn btn-success' onClick={handleLogin}>
-              Iniciar sesión
-            </button>
-          )}
-
           <div className={styles.overlay}>
-            <h1 className={styles.title}>LICENCIATURAS</h1>
-            <ul className={styles.list}>
-              <li>Lic. en Ciencias de la Comunicación</li>
-              <li>Lic. en Filosofía</li>
-              <li>Lic. en Historia</li>
-              <li>Lic. en Lengua y Literatura de Hispanoamérica</li>
-              <li>Lic. en Sociología</li>
-              <li>Lic. en Docencia de la Lengua y Literatura</li>
-              <li>Lic. en Docencia de la Matemática</li>
-              <li>Lic. en Asesoría Psicopedagógica</li>
-            </ul>
+            {userEmail ? (
+              <>
+                <h1 className={styles.title}>Inicio de sesión exitoso</h1>
+                <h4 className="text-white">Sesión iniciada como: <div className='text-success'>{userEmail}</div></h4>
+                <h4></h4>
+                <h4></h4>
+                <h4></h4>
+                <button className='btn btn-danger w-25 translate-middle position-relative start-50' onClick={handleLogout}>
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <>
+              <h1 className={styles.title}>Login</h1>
+              <button className='btn btn-success w-25 translate-middle position-relative start-50' onClick={handleLogin}>
+                Iniciar sesión
+              </button>
+              </>
+            )}
           </div>
         </div>
       </div>
