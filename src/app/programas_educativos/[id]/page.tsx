@@ -56,14 +56,15 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   useEffect(() => {
     const removeDuplicateMaterias = async () => {
       for (const m of materiasPrograma) {
-        const materiasRepetidas = materiasPrograma.filter((materia) => materia.id == m.id);
+        const materiasRepetidas = materiasPrograma.filter((materia) => materia.materia_id == m.materia_id);
         if (materiasRepetidas.length > 1) {
-          for (const materia of materiasRepetidas.slice(0)) { // Ignorar la primera ocurrencia
+          console.log(materiasRepetidas)
+          for (const materia of materiasRepetidas.slice(1)) { // Ignorar la primera ocurrencia
             try {
               const { error } = await supabase
                 .from('programas_materias')
                 .delete()
-                .eq('materia_id', materia.id);
+                .eq('id', materia.id);
               if (error) {
                 console.error('Error al eliminar materia repetida:', error);
               }
@@ -314,7 +315,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   return (
     <div>
         <Nav></Nav>
-        <div className="container position-absolute start-0">
+        <div className="container-flex position-absolute start-0">
         <h1 className='mt-3'>Editar Programa Educativo</h1>
         <UploadPDFMaterias id={id}/>
         <form onSubmit={handleSubmit} className="mt-3">

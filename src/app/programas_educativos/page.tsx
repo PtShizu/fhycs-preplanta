@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
 import GenericDeleteBttn from "@/components/GenericDeleteBttn";
+import { BotonDescargaPDFPrograma } from "@/components/PDFBttn";
 
 export const revalidate = 0;
 
@@ -32,9 +33,10 @@ export default async function Salones() {
                                 <th scope="row">{programa.nombre}</th>
                                 <th scope="row">{programa.numero_grupo}</th>
                                 <td className="w-25">
-                                    <div className="container">
+                                    <div className="container-flex">
                                         <button className="btn btn-secondary me-2"><Link href={"/programas_educativos/"+programa.id}>Editar</Link></button>
                                         <GenericDeleteBttn id={programa.id} api={"programas_educativos"}/>
+                                        <BotonDescargaPDFPrograma programaId={programa.id} nombrePrograma={programa.nombre}/>
                                     </div>
                                 </td>
                             </tr>

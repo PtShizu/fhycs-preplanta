@@ -8,7 +8,7 @@ interface GenHorarioProps {
 }
 
 export default function GenerarHorarioVista({id, tipo, edificio}: GenHorarioProps) {
-    const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+    const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
     const horas = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
     const [clases, setClases] = useState([])
 
@@ -69,7 +69,7 @@ export default function GenerarHorarioVista({id, tipo, edificio}: GenHorarioProp
       }, []);
 
     return(
-        <table className="col-8 table table-bordered text-center align-middle">
+        <table className="col-8 table table-bordered text-center align-middle" style={{width: '100%'}}>
               <thead>
                 <tr>
                   <th>Hora / Día</th>

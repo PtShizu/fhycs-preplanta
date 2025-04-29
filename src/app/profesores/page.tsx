@@ -64,10 +64,11 @@ export default function Profesores() {
                                             </button>
 
                                             <Modal
+                                                className="modal-xl"
                                                 show={selectedProfesorId === profesor.id} // Muestra el modal solo para el profesor seleccionado
                                                 onHide={() => setSelectedProfesorId(null)} // Cierra el modal
                                             >
-                                                <Modal.Body className="modal-header modal-header-full">
+                                                <Modal.Body className="modal-header modal-body modal-header-full" style={{width: '100%'}}>
                                                     <GenerarHorarioVista id={profesor.id} tipo='profesor' />
                                                 </Modal.Body>
                                             </Modal>

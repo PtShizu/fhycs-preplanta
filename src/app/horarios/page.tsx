@@ -50,7 +50,7 @@ export default function Home() {
   });
   const [celda, setCelda] = useState(null);
 
-  const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+  const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   const horas = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'];
   let coordinaFlag = false;
 
@@ -275,11 +275,11 @@ export default function Home() {
 
   const manejarGrupos = async () => {
     if(userData.coordina == 'Facultad'){
-      const { data: gruposData } = await supabase.from('grupos').select('*');
+      const { data: gruposData } = await supabase.from('grupos').select('*').order('nombre');
       setGrupos(gruposData);
     }
     else{
-      const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`);
+      const { data: gruposData } = await supabase.from('grupos').select('*').like('nombre', `${programa.numero_grupo}%`).order('nombre');
       setGrupos(gruposData);
     }
     setCeldaSeleccionada('');

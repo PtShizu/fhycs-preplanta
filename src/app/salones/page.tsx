@@ -14,7 +14,7 @@ export default function Salones() {
 
     useEffect(() => {
         const fetchSalones = async () => {
-            const { data, error } = await supabase.from('salones').select('*').order("num");
+            const { data, error } = await supabase.from('salones').select('*').order('edificio').order("num");
             if (error) {
                 console.error("Error fetching salones:", error);
             } else {
@@ -66,10 +66,11 @@ export default function Salones() {
                                             </button>
 
                                             <Modal
+                                                className="modal-xl"
                                                 show={selectedSalon == salon.edificio+salon.num} // Muestra el modal solo para el salon seleccionado
                                                 onHide={() => setSelectedSalon(null)} // Cierra el modal
                                             >
-                                                <Modal.Body className="modal-header modal-header-full">
+                                                <Modal.Body className="modal-header modal-body modal-header-full" style={{width: '100%'}}>
                                                     <GenerarHorarioVista id={salon.num} tipo='salon' edificio={salon.edificio}/>
                                                 </Modal.Body>
                                             </Modal>

@@ -218,7 +218,6 @@ export async function POST(req: Request) {
       })
 
   } catch (err) {
-    console.error(err)
     return new Response(JSON.stringify({ error: 'Error al procesar el PDF' }), {
       status: 503,
     })

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {toast} from 'react-hot-toast';
 
 interface UploadProps {
     id: string;
@@ -23,6 +24,7 @@ export default function UploadPDFMaterias({ id }: UploadProps) {
     const reader = new FileReader()
 
     reader.onloadend = async () => {
+      const loadToastId = toast.loading('Cargando materias...')
       const base64 = (reader.result as string).split(',')[1] // solo el contenido
       const res = await fetch('/api/parse-materias', {
         method: 'POST',
@@ -30,6 +32,8 @@ export default function UploadPDFMaterias({ id }: UploadProps) {
         body: JSON.stringify({ file: base64, id: id}),
       })
       if (res.ok) {
+        toast.success('Materias cargadas correctamente!', {id: loadToastId})
+        toast.success('Por favor recargue la página para ver los cambios')
         router.refresh();
       }
     }
