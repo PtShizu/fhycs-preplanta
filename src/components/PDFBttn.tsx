@@ -1,7 +1,7 @@
 'use client'
 
 import { crearDocDefinitionPrograma } from "./GenerarHorarioPDF"
-import { obtenerDatosPrograma } from "@/lib/pdf-gen/obtenerDatosPrograma"
+import { obtenerDatosPrograma } from "@/app/actions/obtenerDatosPrograma"
 import pdfMake from "pdfmake/build/pdfmake"
 import pdfFonts from "pdfmake/build/vfs_fonts"
 pdfMake.vfs = pdfFonts.vfs;
