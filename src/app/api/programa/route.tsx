@@ -1,9 +1,9 @@
 // app/api/programa/[id]/route.ts
 import { NextResponse } from 'next/server'
-import { POST } from '../pdf-gen/route'
+import { obtenerDatosPrograma } from '../../../lib/pdf-gen/obtenerDatosPrograma'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const programaId = parseInt(params.id)
-  const datos = await POST(programaId)
+  const datos = await obtenerDatosPrograma(programaId)
   return NextResponse.json(datos)
 }
