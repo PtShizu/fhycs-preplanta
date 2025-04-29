@@ -22,7 +22,7 @@ function agruparHorariosPorModalidad(horas: { start: string, end: string, virtua
   );
 }
 
-export async function obtenerDatosPrograma(programaId: number) {
+export async function POST(programaId: number) {
   const { data: programa } = await supabase
     .from('programas_educativos')
     .select('numero_grupo')
