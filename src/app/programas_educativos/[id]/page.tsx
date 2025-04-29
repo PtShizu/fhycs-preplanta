@@ -54,6 +54,31 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   }, [id]);
 
   useEffect(() => {
+    const removeDuplicateMaterias = async () => {
+      for (const m of materiasPrograma) {
+        const materiasRepetidas = materiasPrograma.filter((materia) => materia.id == m.id);
+        if (materiasRepetidas.length > 1) {
+          for (const materia of materiasRepetidas.slice(0)) { // Ignorar la primera ocurrencia
+            try {
+              const { error } = await supabase
+                .from('programas_materias')
+                .delete()
+                .eq('materia_id', materia.id);
+              if (error) {
+                console.error('Error al eliminar materia repetida:', error);
+              }
+            } catch (error) {
+              console.error('Error al procesar materia repetida:', error);
+            }
+          }
+        }
+      }
+    };
+
+    removeDuplicateMaterias();
+  }, [materiasPrograma]);
+
+  useEffect(() => {
     const fetchMateriasExistentes = async () => {
       try{
         const { data } = await supabase
