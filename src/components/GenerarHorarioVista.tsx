@@ -99,7 +99,7 @@ export default function GenerarHorarioVista({id, tipo, edificio}: GenHorarioProp
                               {claseCelda.grupo_nombre ? claseCelda.grupo_nombre : ''}<br />
                               {claseCelda.materia_nombre}<br/>
                               {claseCelda.tipo}<br/>
-                              {tipo == 'profesor' ? claseCelda.edificio+' '+claseCelda.salon : claseCelda.profesor_nombre}
+                              {tipo == 'profesor' ? ((claseCelda.edificio ? claseCelda.edificio : '')+' '+(claseCelda.salon ? claseCelda.salon : '')) : claseCelda.profesor_nombre}
                             </div>
                           ) : ''}
                         </td>

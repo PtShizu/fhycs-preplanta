@@ -42,8 +42,8 @@ export default function Home() {
     materia_id: '',
     materia_nombre: '',
     grupo_id: '',
-    edificio: '',
-    salon: '',
+    edificio: null,
+    salon: null,
     dia: '',
     hora: '',
     tipo: '' // clase, taller, laboratorio
@@ -335,18 +335,18 @@ export default function Home() {
     if (grupoId === 0) {
       setGrupoSeleccionado(null);
       setClase({...clase,
-        profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
+        profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: null, salon: null
       });
       return;
     }
     const grupo = grupos.find(g => g.id == grupoId);
     setGrupoSeleccionado(grupo);
-    setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), profesor_nombre: '', materia_nombre: '', materia_id: '', profesor_id: '', tipo: '', edificio: '', salon: '' }));
+    setClase(prev => ({ ...prev, grupo_id: grupo.id.toString(), profesor_nombre: '', materia_nombre: '', materia_id: '', profesor_id: '', tipo: '', edificio: null, salon: null }));
   };
 
 
   const manejarAgregar = async () => {
-    if (Object.values(clase).some(val => val === '')) return;
+    if (Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key))) return;
 
     if (clases.find(c =>
       c.dia === clase.dia && c.hora === clase.hora &&
@@ -358,7 +358,7 @@ export default function Home() {
 
     await supabase.from('clases').insert(clase);
     setClase({...clase,
-      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
+      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: null, salon: null
     });
     setCelda(null);
     setCeldaSeleccionada('');
@@ -371,7 +371,7 @@ export default function Home() {
     setCelda(null);
     setCeldaSeleccionada('');
     setClase({...clase,
-      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: '', salon: ''
+      profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: null, salon: null
     });
     toast.success('Clase eliminada')
   };
@@ -561,32 +561,40 @@ export default function Home() {
                     {tiposClase.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
                 </select>
               </div>
-              <div className='col-md-6 mt-3'>
-                <select className="form-select" value={clase.edificio} onChange={(e) => {
-                  const value = e.target.value;
-                  setEdificio(value);
-                  setClase(prev => ({ ...prev, edificio: value, salon: '' }));
-                }}>
-                  <option value="">Edificio</option>
-                  {[...new Set(salones.map(s => s.edificio))].map(ed => (
-                    <option key={ed}>{ed}</option>
-                  ))}
-                </select>
-              </div>
-              <div className='col-md-6 mt-3'>
-                <select className='form-select'
-                  disabled={!clase.edificio}
-                  value={clase.salon}
-                  onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
-                >
-                  <option value="">Salón</option>
-                  {salonesDisponibles.filter(s => s.edificio === edificio).map(salon => (
-                    <option key={salon.num}>{salon.num}</option>
-                  ))}
-                </select>
+              <div>
+                {userData.coordina == 'Facultad' ? (
+                  <>
+                  <div className='col-md-6 mt-3'>
+                  <select className="form-select" value={clase.edificio} onChange={(e) => {
+                    const value = e.target.value;
+                    setEdificio(value);
+                    setClase(prev => ({ ...prev, edificio: value, salon: '' }));
+                  }}>
+                    <option value="">Edificio</option>
+                    {[...new Set(salones.map(s => s.edificio))].map(ed => (
+                      <option key={ed}>{ed}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className='col-md-6 mt-3'>
+                  <select className='form-select'
+                    disabled={!clase.edificio}
+                    value={clase.salon}
+                    onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
+                  >
+                    <option value="">Salón</option>
+                    {salonesDisponibles.filter(s => s.edificio === edificio).map(salon => (
+                      <option key={salon.num}>{salon.num}</option>
+                    ))}
+                  </select>
+                </div>
+                  </>
+                ) : (
+                  <div></div>
+                )}
               </div>
               <div className="mt-3 gap-3">
-              <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.values(clase).some(val => val === '') || celda}>
+              <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key)) || celda}>
                 Agregar
               </button>
               <button className="btn btn-danger ms-3" onClick={manejarBorrar} disabled={!celda}>

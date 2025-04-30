@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 type Resultado = {
   nombre: string | null
@@ -22,12 +23,15 @@ export default function UploadPDF() {
   const [file, setFile] = useState<File | null>(null)
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const loadToastId = toast.loading('Cargando PDF...')
     const selectedFile = e.target.files?.[0]
     if (selectedFile) setFile(selectedFile)
+    toast.success('Cargado!', {id: loadToastId})
   }
 
   const handleUpload = async () => {
-    if (!file) return alert('Selecciona un archivo primero')
+    if (!file) return toast.error('Selecciona un archivo!')
+    const loadToastId = toast.loading('Cargando PDF...')
 
     const reader = new FileReader()
 
@@ -43,18 +47,24 @@ export default function UploadPDF() {
       setResultado(data);
     }
 
+    toast.success('Cargado!', {id: loadToastId})
     reader.readAsDataURL(file)
   }
 
   const handleSubmit = async () => {
+    const loadToastId = toast.loading('Cargando profesor...')
     const res = await fetch('/api/profesores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(resultado),
     });
     if (res.ok) {
+      toast.success('Carga exitosa!', {id: loadToastId})
       router.refresh();
       router.push('/profesores'); // Redirige al listado
+    }
+    else{
+      toast.error('Profesor ya registrado!', {id: loadToastId});
     }
   };
   

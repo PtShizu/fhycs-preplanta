@@ -71,6 +71,7 @@ export default function Home() {
           </h5>
 
           <div className={styles.overlay}>
+          <p className='position-relative top-50 text-center' style={{color: '#FFFFFF', fontSize: '20px'}}>Programa desarrollado por Julián. Dudas o sugerencias: <b>ruben.julian.moreno.astorga@uabc.edu.mx</b></p>
             {userEmail ? (
               <>
                 <h1 className={styles.title}>Inicio de sesión exitoso</h1>
@@ -90,6 +91,7 @@ export default function Home() {
               </button>
               </>
             )}
+            
           </div>
         </div>
       </div>

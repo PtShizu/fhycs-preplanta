@@ -1,4 +1,4 @@
-export function crearDocDefinitionPrograma(nombrePrograma: string, datosPorGrupo: any[]) {
+export function crearDocDefinitionPrograma(nombrePrograma: string, datosPorGrupo: any[], subdirector: boolean) {
     const contenido: any[] = [
       {
         text: `UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA\nFACULTAD DE HUMANIDADES Y CIENCIAS SOCIALES`,
