@@ -33,7 +33,7 @@ export default async function Salones() {
                                 <td>{grupo.etapa}</td>
                                 <td className="w-25">
                                     <div className="container">
-                                        <button className="btn btn-secondary me-2"><Link href={"/grupos/"+grupo.id}>Editar</Link></button>
+                                        <Link className="btn btn-secondary me-2" href={"/grupos/"+grupo.id}>Editar</Link>
                                         <GenericDeleteBttn id={grupo.id} api={"grupos"}/>
                                     </div>
                                 </td>

@@ -53,7 +53,7 @@ export default function Profesores() {
                                 <td>{profesor.coordina}</td>
                                 <td className="w-25">
                                     <div className="container">
-                                        <button className="btn btn-secondary me-2"><Link href={"/profesores/"+profesor.id}>Editar</Link></button>
+                                        <Link className="btn btn-secondary me-2" href={"/profesores/"+profesor.id}>Editar</Link>
                                         <GenericDeleteBttn id={profesor.id} api={"profesores"}/>
                                         <>
                                             <button

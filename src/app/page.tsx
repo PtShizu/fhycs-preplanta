@@ -71,7 +71,7 @@ export default function Home() {
           </h5>
 
           <div className={styles.overlay}>
-          <p className='position-relative top-50 text-center' style={{color: '#FFFFFF', fontSize: '20px'}}>Programa desarrollado por Julián. Dudas o sugerencias: <b>ruben.julian.moreno.astorga@uabc.edu.mx</b></p>
+          
             {userEmail ? (
               <>
                 <h1 className={styles.title}>Inicio de sesión exitoso</h1>
@@ -91,6 +91,25 @@ export default function Home() {
               </button>
               </>
             )}
+
+            <p className='position-relative text-center' style={{color: '#FFFFFF', fontSize: '20px'}}>
+            Aplicación diseñada por estudiantes de FCQI. 
+            <br />
+            Hernandez Vazquez Brandon Jahir
+            <br />
+            Hu Zhen Alberto
+            <br />
+            Montes Reyes Juan Manuel
+            <br />
+            Moreno Astorga Ruben Julian
+            <br />
+            Romero Flores Zulma Adiene
+            <br />
+            Soriano de Avila Maria Sharai
+            <br />
+            Dudas o sugerencias: 
+            <b> ruben.julian.moreno.astorga@uabc.edu.mx</b>
+            </p>
             
           </div>
         </div>

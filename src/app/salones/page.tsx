@@ -55,7 +55,7 @@ export default function Salones() {
                                 <td>{salon.capacidad}</td>
                                 <td className="w-25">
                                     <div className="container">
-                                        <button className="btn btn-secondary me-2"><Link href={"/salones/"+salon.edificio+"/"+salon.num}>Editar</Link></button>
+                                        <Link className="btn btn-secondary me-2" href={"/salones/"+salon.edificio+"/"+salon.num}>Editar</Link>
                                         <DeleteButton edificio={salon.edificio} num={salon.num}/>
                                         <>
                                             <button

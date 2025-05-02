@@ -34,7 +34,7 @@ export default async function Salones() {
                                 <th scope="row">{programa.numero_grupo}</th>
                                 <td className="w-25">
                                     <div className="container-flex">
-                                        <button className="btn btn-secondary me-2"><Link href={"/programas_educativos/"+programa.id}>Editar</Link></button>
+                                        <Link className="btn btn-secondary me-2" href={"/programas_educativos/"+programa.id}>Editar</Link>
                                         <GenericDeleteBttn id={programa.id} api={"programas_educativos"}/>
                                         <BotonDescargaPDFPrograma programaId={programa.id} nombrePrograma={programa.nombre}/>
                                     </div>

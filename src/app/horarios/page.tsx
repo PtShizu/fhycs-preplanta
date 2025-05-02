@@ -36,6 +36,9 @@ export default function Home() {
   const [salonesDisponibles, setSalonesDisponibles] = useState([]);
   const [tiposClase, setTiposClase] = useState<string[]>([]);
   const [programaGrupo, setProgramaGrupo] = useState();
+  const [programas, setProgramas] = useState([]);
+  const [filterOptativas, setFilterOptativas] = useState(false);
+  const [restrictSemestre, setRestrictSemestre] = useState(true);
   const [clase, setClase] = useState({
     profesor_id: '',
     profesor_nombre: '',
@@ -99,37 +102,55 @@ export default function Home() {
         .eq('programa_id', programa.id);
       setProgramasMaterias(programasMateriasData);
     }
-    if (programa.id) {
+    if (programa?.id) {
       fetchProgramasMaterias();
     }
   },[programa])
 
   useEffect(() => {
     const fetchPrograma = async () => {
-      const { data: programaData, error: programaError } = await supabase.from('programas_educativos').select('*').eq('numero_grupo', parseInt(programaGrupo)).single()
-      if(programaError) return programaError
-      setPrograma(programaData);
+        const { data: programasData, error: programasError } = await supabase
+            .from('programas_educativos')
+            .select('*')
+            .eq('numero_grupo', parseInt(programaGrupo));
+        if (programasError) {
+            console.error('Error fetching multiple programas:', programasError);
+            return;
+        }
+        setProgramas(programasData);
     }
     if(programaGrupo)
       fetchPrograma();
   }, [programaGrupo])
 
   useEffect(() => {
-    setProgramaGrupo(grupoSeleccionado?.nombre.split('')[0]);
-    setGrupoSemestre(grupoSeleccionado?.nombre.split('')[1]);
-  }, [grupoSeleccionado]);
+    setPrograma(programas[0])
+  }, [programas])
+
+  useEffect(() => {
+    console.log(grupoSemestre)
+  }, [grupoSemestre])
+
+  useEffect(() => {
+    const newProgramaGrupo = grupoSeleccionado?.nombre.split('')[0] || '';
+    const newGrupoSemestre = grupoSeleccionado?.nombre.split('')[1] || '';
+
+    // Solo actualiza si los valores son diferentes
+    setProgramaGrupo((prev) => (prev !== newProgramaGrupo ? newProgramaGrupo : prev));
+    setGrupoSemestre((prev) => (prev !== newGrupoSemestre ? newGrupoSemestre : prev));
+}, [grupoSeleccionado]);
 
   useEffect(() => {
     finalMaterias.length = 0; // Limpiar el array antes de llenarlo
     if (!grupoSemestre) return; // Asegurarse de que grupoSemestre no esté vacío
     materias.forEach((materia) => {
       programas_materias.forEach((programa) => {
-        if (materia.id == programa.materia_id && (programa.semestre == grupoSemestre || (programa.etapa == grupoSeleccionado.etapa && !programa.semestre) || !programa.etapa)) {
+        if (materia.id == programa.materia_id && ((programa.semestre == grupoSemestre || (!restrictSemestre && programa.tipo== 'obligatoria')) || (programa.etapa == grupoSeleccionado.etapa && !programa.semestre) || (!programa.etapa && filterOptativas))) {
           setFinalMaterias(prev => [...prev, materia]);
         }
       });
     });
-  },[programas_materias, grupoSemestre]);
+  },[programas_materias, grupoSemestre, filterOptativas, restrictSemestre]);
 
   useEffect(() => {
     if(clase.dia && clase.hora) {
@@ -287,6 +308,7 @@ export default function Home() {
   };
 
   const manejarDisponibilidad = () => {
+    console.log(clase)
     const ocupadosProfesores = new Set();
     const ocupadosSalones = new Set();
   
@@ -346,7 +368,16 @@ export default function Home() {
 
 
   const manejarAgregar = async () => {
-    if (Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key))) return;
+    if (Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key))){
+      await supabase.from('clases').update({edificio: clase.edificio, salon: clase.salon}).eq('grupo_id', grupoSeleccionado.id).eq('dia', clase.dia).eq('hora', clase.hora)
+      setClase({...clase,
+        profesor_id: '', profesor_nombre: '', materia_nombre: '', materia_id: '', tipo: '', dia: '', hora: '', edificio: null, salon: null
+      });
+      setCelda(null);
+      setCeldaSeleccionada('');
+      toast.success('Clase actualizada')
+      return;
+    }
 
     if (clases.find(c =>
       c.dia === clase.dia && c.hora === clase.hora &&
@@ -426,6 +457,30 @@ export default function Home() {
     }
     setContextMenu(null);
   };
+
+  const handleCutClase = async () => {
+    setProfesoresDisponibles(profesores)
+    setSalonesDisponibles(salones)
+    setCeldaSeleccionada('')
+    if (contextMenu?.clase) {
+      setEdificio(contextMenu.clase.edificio)
+      setClase({
+        profesor_id: contextMenu.clase.profesor_id, 
+        profesor_nombre: contextMenu.clase.profesor_nombre,
+        materia_id: contextMenu.clase.materia_id,
+        materia_nombre: contextMenu.clase.materia_nombre,
+        grupo_id: contextMenu.clase.grupo_id,
+        edificio: contextMenu.clase.edificio,
+        salon: contextMenu.clase.salon,
+        dia: '',
+        hora: '',
+        tipo: contextMenu.clase.tipo
+      });
+    }
+    await supabase.from('clases').delete().eq('id', contextMenu.clase.id);
+    toast.success('Clase cortada');
+    setContextMenu(null);
+  };
   
   // Aquí agregamos el listener
   useEffect(() => {
@@ -441,7 +496,7 @@ export default function Home() {
   }, []);
 
 
-  const isNotCoordinador = userData && programa.id === '' && !coordinaFlag; // Evalúa permisos solo si userData está disponible
+  const isNotCoordinador = userData && programa?.id === '' && !coordinaFlag; // Evalúa permisos solo si userData está disponible
   const isLoadingGrupos = !userData; // Carga grupos solo si el usuario tiene permisos y programa no está cargado
   const isCheckingCoordinador = !coordinaFlag && !user; // Solo verifica coordinador si el usuario ya está cargado
 
@@ -467,7 +522,7 @@ export default function Home() {
       <div className="main">
 
         <div className="mt-4">
-          <select className="form-select" disabled={!programa.id ? true : false} onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
+          <select className="form-select" disabled={!programa?.id ? true : false} onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
             {!grupoSeleccionado && <option value={0}>
               {getEstado()}
             </option>}
@@ -476,6 +531,22 @@ export default function Home() {
             ))}
           </select>
         </div>
+
+        {programas.length>1 ? (
+          <>
+          <label className='mt-4'>Plan:</label>
+          <div>
+            <select className="form-select" onChange={(e) => {
+              const value = e.target.value;
+              setPrograma(programas[value]);
+            }}>
+              {programas.map((p, i) => (
+                <option key={i} value={i}>{p.nombre}</option>
+              ))}
+            </select>
+          </div>
+          </>
+        ) : ''}
 
         {grupoSeleccionado && (
           <div className="row g-3 mt-4">
@@ -520,17 +591,39 @@ export default function Home() {
               </tbody>
             </table>
             {contextMenu && (
-                      <button
-                        className="btn position-absolute bg-white border rounded shadow p-2"
-                        style={{ top: contextMenu.mouseY, left: contextMenu.mouseX, zIndex: 1000, width: '7%' }}
-                        onClick={() => {
-                          handleCopyClase(); // Aquí llamas a la función para copiar
-                          setContextMenu(null); // Esto cierra el menú después de hacer clic
-                        }}
-                      >
-                        Copiar clase
-                      </button>
-                    )}
+                        <>
+                          <button
+                            className="btn position-absolute bg-white border rounded shadow p-2"
+                            style={{
+                              top: contextMenu.mouseY,
+                              left: contextMenu.mouseX,
+                              zIndex: 1000,
+                              width: '7%',
+                            }}
+                            onClick={() => {
+                              handleCopyClase(); // Aquí llamas a la función para copiar
+                              setContextMenu(null); // Esto cierra el menú después de hacer clic
+                            }}
+                          >
+                            Copiar clase
+                          </button>
+                          <button
+                            className="btn position-absolute bg-white border rounded shadow p-2"
+                            style={{
+                              top: contextMenu.mouseY + 40, // Añade un desplazamiento vertical
+                              left: contextMenu.mouseX,
+                              zIndex: 1000,
+                              width: '7%',
+                            }}
+                            onClick={() => {
+                              handleCutClase(); // Aquí llamas a la función para cortar
+                              setContextMenu(null); // Esto cierra el menú después de hacer clic
+                            }}
+                          >
+                            Cortar clase
+                          </button>
+                        </>
+                      )}
 
             <div className="col-4 g-3 mt-3">
               <div className="col-md-6">
@@ -540,7 +633,12 @@ export default function Home() {
                   }}>
                   <option value="">Selecciona profesor</option>
                   {
+                    clase.dia && clase.hora ? 
                         profesoresDisponibles.map(p => <option style={{ 
+                          color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black',
+                          }} key={p.id} value={`${p.id}|${p.nombre}`}>{p.nombre}</option>)
+                          :
+                        profesores.map(p => <option style={{ 
                           color: profesores_interes.includes(p.id) ? 'red' : clase.materia_id ? 'gray' : 'black',
                           }} key={p.id} value={`${p.id}|${p.nombre}`}>{p.nombre}</option>)
                   }
@@ -555,6 +653,30 @@ export default function Home() {
                   {finalMaterias.map(m => <option style={{ color: asignaturas_interes.includes(m.id) ? 'red' : clase.profesor_id ? 'gray' : 'black'}} key={m.id} value={`${m.id}|${m.nombre}`}>{m.nombre}</option>)}
                 </select>
               </div>
+              <div className="form-check mt-3">
+                <input 
+                  className="form-check-input" 
+                  type="checkbox" 
+                  id="checkDefault"
+                  checked={filterOptativas} // El estado controla si está marcado
+                  onChange={(e) => setFilterOptativas(e.target.checked)} // Actualiza el estado al cambiar
+                />
+                <label className="form-check-label" htmlFor="checkDefault">
+                  Incluir Optativas Generales
+                </label>
+              </div>
+              <div className="form-check mt-3">
+                <input 
+                  className="form-check-input" 
+                  type="checkbox" 
+                  id="checkDefault"
+                  checked={restrictSemestre} // El estado controla si está marcado
+                  onChange={(e) => setRestrictSemestre(e.target.checked)} // Actualiza el estado al cambiar
+                />
+                <label className="form-check-label" htmlFor="checkDefault">
+                  Restringir materias obligatorias al semestre del grupo
+                </label>
+              </div>
               <div className="col-md-6 mt-3">
                 <select className='form-select' disabled={!clase.materia_id} value={clase.tipo} onChange={(e) => setClase(prev => ({ ...prev, tipo: e.target.value }))}>
                     <option value="">Tipo de clase</option>
@@ -565,7 +687,7 @@ export default function Home() {
                 {userData.coordina == 'Facultad' ? (
                   <>
                   <div className='col-md-6 mt-3'>
-                  <select className="form-select" value={clase.edificio} onChange={(e) => {
+                  <select className="form-select" value={clase.edificio ? clase.edificio : ''} onChange={(e) => {
                     const value = e.target.value;
                     setEdificio(value);
                     setClase(prev => ({ ...prev, edificio: value, salon: '' }));
@@ -579,7 +701,7 @@ export default function Home() {
                 <div className='col-md-6 mt-3'>
                   <select className='form-select'
                     disabled={!clase.edificio}
-                    value={clase.salon}
+                    value={clase.salon ? clase.salon : ''}
                     onChange={(e) => setClase(prev => ({ ...prev, salon: e.target.value }))}
                   >
                     <option value="">Salón</option>
@@ -594,7 +716,7 @@ export default function Home() {
                 )}
               </div>
               <div className="mt-3 gap-3">
-              <button className="btn btn-success" onClick={manejarAgregar} disabled={Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key)) || celda}>
+              <button className="btn btn-success" onClick={manejarAgregar} disabled={(Object.entries(clase).some(([key, val]) => val === '' && !['edificio', 'salon'].includes(key)) || (celda && userData.coordina != 'Facultad' )) && (userData.coordina != 'Facultad' || (!clase.edificio || !clase.salon))}>
                 Agregar
               </button>
               <button className="btn btn-danger ms-3" onClick={manejarBorrar} disabled={!celda}>

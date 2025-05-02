@@ -11,7 +11,7 @@ export default async function Salones() {
         <main>
             <Nav></Nav>
           
-          <div className="grupos container-flex position-absolute start-0">
+          <div className="grupos container-flex">
             <h1 className="mt-3">Cambios</h1>
                 <table className="table mt-3">
                     <thead>
@@ -22,7 +22,7 @@ export default async function Salones() {
                         </tr>
                     </thead>
                     <tbody>
-                        {updates?.map(update =>(
+                        {updates?.map((update, i) =>(
                             <tr className="salon" key={update.id}>
                                 <th scope="row">{update.num}</th>
                                 <td>
