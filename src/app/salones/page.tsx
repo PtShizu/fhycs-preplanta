@@ -11,6 +11,8 @@ import GenerarHorarioVista from "@/components/GenerarHorarioVista";
 export default function Salones() {
     const [salones, setSalones] = useState([]);
     const [selectedSalon, setSelectedSalon] = useState(null); // Estado para el profesor seleccionado
+    const [search, setSearch] = useState('');
+    const [filteredSalones, setFilteredSalones] = useState([]);
 
     useEffect(() => {
         const fetchSalones = async () => {
@@ -26,6 +28,18 @@ export default function Salones() {
     }, []);
 
     useEffect(() => {
+        if(search == ''){
+            setFilteredSalones(salones);
+        }
+        else{
+        setFilteredSalones(salones.filter(profesor =>
+            Object.values(profesor).some(value =>
+                value && value.toString().toLowerCase().includes(search.toLowerCase())
+            )))
+        }
+    }, [salones, search]);
+
+    useEffect(() => {
         console.log(selectedSalon)
     }, [selectedSalon])
 
@@ -38,6 +52,13 @@ export default function Salones() {
             <Link href="/salones/crear" className="btn btn-success">
                 + Agregar Salón
             </Link>
+            <input
+                type="text"
+                className="form-control mt-3"
+                placeholder="Buscar salón..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
                 <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
@@ -48,7 +69,7 @@ export default function Salones() {
                         </tr>
                     </thead>
                     <tbody>
-                        {salones.map(salon =>(
+                        {filteredSalones.map(salon =>(
                             <tr className="salon" key={salon.edificio+salon.num}>
                                 <th scope="row">{salon.edificio}</th>
                                 <td>{salon.num}</td>

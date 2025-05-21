@@ -191,7 +191,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   }, [materiasSeleccionadas]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateField = async (id: string, column: string, value: any) => {
+  const updateField = async (id: string, column: string, value: any, clave?: string) => {
     try {
       if(column === 'delete'){
         const { data, error } = await supabase
@@ -201,12 +201,22 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         if (error) throw error;
         return data;
       }
-      const { data, error } = await supabase
-        .from('programas_materias')
-        .update({ [column]: value }) // Usar un objeto dinámico para la columna
-        .eq('id', id);
-      if (error) throw error;
-      return data;
+      if(column == 'horas_clase' || column == 'horas_taler' || column == 'horas_lab' || column == 'hpc' || column == 'hcl' || column == 'he' || column == 'creditos'){
+        const { data, error } = await supabase
+            .from('materias')
+            .update({ [column]: value }) // Usar un objeto dinámico para la columna
+            .eq('clave', clave);
+          if (error) throw error;
+          return data;
+      }
+      else{
+        const { data, error } = await supabase
+            .from('programas_materias')
+            .update({ [column]: value }) // Usar un objeto dinámico para la columna
+            .eq('id', id);
+          if (error) throw error;
+          return data;
+      }
     } catch (error) {
       console.error(`Error updating ${column}:`, error);
     }
@@ -554,14 +564,91 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                           <option value="terminal">terminal</option>
                           </select>
                         </td>
-                        <td className="px-2 py-1 text-center">{m.materias.horas_clase}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.horas_taller}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.horas_lab}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.hpc}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.hcl}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.he}</td>
-                        <td className="px-2 py-1 text-center">{m.materias.creditos}</td>
-                        <td className="px-2 py-1 text-center" style={{width: '3%'}}>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.horas_clase}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'horas_clase', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.horas_taller}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'horas_taller', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.horas_lab}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'horas_lab', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.hpc}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'hpc', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.hcl}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'hcl', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.he}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'he', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
+                          <input 
+                          type="number"
+                          min={0}
+                          defaultValue={m.materias.creditos}
+                          className="form-control"
+                          onChange={(e) => {
+                            enforceMinMax(e.target);
+                            updateField(m.id, 'creditos', parseInt(e.target.value), m.materias.clave);
+                          }}
+                          />
+                        </td>
+                        <td className="px-2 py-1 text-center" style={{width: '4%'}}>
                           <input 
                           type="number"
                           min={1}

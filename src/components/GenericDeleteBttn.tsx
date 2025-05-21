@@ -18,6 +18,7 @@ export default function GenericDeleteBttn({id, api}: DeleteButtonProps){
 
     return(
         <button className="btn btn-danger" type="button" onClick={async () => {
+          if (!window.confirm('¿Estás seguro de que deseas eliminar este elemento?')) return;
           if (!user) return <div>No autenticado</div>;
             try {
                 const response = await fetch('/api/'+api, {

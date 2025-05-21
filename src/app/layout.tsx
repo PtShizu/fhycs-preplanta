@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BootstrapClient from '@/components/BootstrapClient';
 import SupabaseProviderLib from "@/lib/supabase-provider";
+import PageProtector from "@/components/PageProtector";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -46,6 +47,7 @@ export default function RootLayout({
               duration: 5000,
             }}
           />
+          <PageProtector/>
           {children}
           <BootstrapClient />
         </SupabaseProviderLocal>

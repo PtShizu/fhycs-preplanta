@@ -11,6 +11,8 @@ import GenerarHorarioVista from "@/components/GenerarHorarioVista";
 export default function Profesores() {
     const [profesores, setProfesores] = useState([]);
     const [selectedProfesorId, setSelectedProfesorId] = useState(null); // Estado para el profesor seleccionado
+    const [search, setSearch] = useState('');
+    const [filteredProfesores, setFilteredProfesores] = useState([]);
 
     useEffect(() => {
         const fetchProfesores = async () => {
@@ -25,6 +27,18 @@ export default function Profesores() {
         fetchProfesores();
     }, []);
 
+    useEffect(() => {
+        if(search == ''){
+            setFilteredProfesores(profesores);
+        }
+        else{
+        setFilteredProfesores(profesores.filter(profesor =>
+            Object.values(profesor).some(value =>
+                value && value.toString().toLowerCase().includes(search.toLowerCase())
+            )))
+        }
+    }, [profesores, search]);
+
     return (
         <main>
             <Nav></Nav>
@@ -34,6 +48,13 @@ export default function Profesores() {
             <Link href="/profesores/crear" className="btn btn-success">
                 + Agregar Profesor
             </Link>
+            <input
+                type="text"
+                className="form-control mt-3"
+                placeholder="Buscar profesor..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
                 <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
@@ -45,7 +66,7 @@ export default function Profesores() {
                         </tr>
                     </thead>
                     <tbody>
-                        {profesores.map(profesor =>(
+                        {filteredProfesores.map(profesor =>(
                             <tr className="profesor" key={profesor.id}>
                                 <th scope="row">{profesor.num_empleado}</th>
                                 <td>{profesor.nombre}</td>

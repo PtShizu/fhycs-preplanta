@@ -1,11 +1,14 @@
 // components/UploadPDF.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase-client';
 
 type Resultado = {
+  id?: number
+  pdf?: boolean
   nombre: string | null
   num_empleado: string | null
   correo: string | null
@@ -18,7 +21,8 @@ type Resultado = {
 
 export default function UploadPDF() {
   const router = useRouter();
-  const [resultado, setResultado] = useState<Resultado>(null); 
+  const [resultado, setResultado] = useState<Resultado>(null);
+  const [existente, setExistente] = useState(false);
 
   const [file, setFile] = useState<File | null>(null)
 
@@ -67,7 +71,40 @@ export default function UploadPDF() {
       toast.error('Profesor ya registrado!', {id: loadToastId});
     }
   };
-  
+  const handleUpdate = async () => {
+    if (!window.confirm('¿El profesor ya está registrado, quieres actualizar su información?')) return;
+    console.log(resultado)
+    const loadToastId = toast.loading('Cargando profesor...')
+    const res = await fetch('/api/profesores', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resultado),
+    });
+    if (res.ok) {
+      toast.success('Actualización exitosa!', {id: loadToastId})
+      router.refresh();
+      router.push('/profesores'); // Redirige al listado
+    }
+    else{
+      toast.error('Hubo un error con el formato!', {id: loadToastId});
+    }
+  };
+
+  useEffect(() => {
+    const fetchProfesor = async () => {
+        const { data, error } = await supabase.from('profesores').select('*').eq('nombre', resultado.nombre).single()
+        if (error) {
+            console.error("Error fetching profesor:", error);
+        } else {
+            if(data){
+              setResultado({...resultado, id: data.id, pdf: true});
+              setExistente(true);
+            }
+        }
+    };
+    if(resultado?.nombre)
+    fetchProfesor();
+  }, [resultado?.nombre]);
 
   return (
     <div className="p-4 space-y-4">
@@ -76,16 +113,9 @@ export default function UploadPDF() {
         Subir PDF
       </button>
       {resultado && (
-        <button onClick={handleSubmit} className="bg-secondary text-white px-4 py-2 rounded">
+        <button onClick={!existente ? handleSubmit : handleUpdate} className="bg-secondary text-white px-4 py-2 rounded">
           Agregar profesor
         </button>
-      )}
-
-      {resultado && (
-        <div className="mt-4 bg-gray-100 p-4 rounded">
-          <h3 className="font-bold">Resultado:</h3>
-          <pre>{JSON.stringify(resultado, null, 2)}</pre>
-        </div>
       )}
     </div>
   );

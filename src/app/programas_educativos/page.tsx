@@ -1,14 +1,42 @@
+'use client';
+
 import React from "react";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
 import GenericDeleteBttn from "@/components/GenericDeleteBttn";
 import { BotonDescargaPDFPrograma } from "@/components/PDFBttn";
+import { useState, useEffect } from 'react'
 
-export const revalidate = 0;
-
-export default async function Salones() {
-    const { data: programas } = await supabase.from('programas_educativos').select('*').order("nombre");
+export default function Salones() {
+    const [programas, setProgramas] = useState([]);
+    const [search, setSearch] = useState('');
+        const [filteredProgramas, setFilteredProgramas] = useState([]);
+    
+        useEffect(() => {
+            const fetchProfesores = async () => {
+                const { data, error } = await supabase.from('programas_educativos').select('*').order("nombre");
+                if (error) {
+                    console.error("Error fetching programas educativos:", error);
+                } else {
+                    setProgramas(data || []);
+                }
+            };
+    
+            fetchProfesores();
+        }, []);
+    
+        useEffect(() => {
+                if(search == ''){
+                    setFilteredProgramas(programas);
+                }
+                else{
+                setFilteredProgramas(programas.filter(profesor =>
+                    Object.values(profesor).some(value =>
+                        value && value.toString().toLowerCase().includes(search.toLowerCase())
+                    )))
+                }
+            }, [programas, search]);
 
     return (
         <main>
@@ -19,6 +47,13 @@ export default async function Salones() {
             <Link href="/programas_educativos/crear" className="btn btn-success">
                 + Agregar Programa Educativo
             </Link>
+            <input
+                type="text"
+                className="form-control mt-3"
+                placeholder="Buscar programa..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
                 <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
@@ -28,7 +63,7 @@ export default async function Salones() {
                         </tr>
                     </thead>
                     <tbody>
-                        {programas?.map(programa =>(
+                        {filteredProgramas?.map(programa =>(
                             <tr className="salon" key={programa.id}>
                                 <th scope="row">{programa.nombre}</th>
                                 <th scope="row">{programa.numero_grupo}</th>

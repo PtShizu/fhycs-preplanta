@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Nav from '@/app/Nav';
 import { supabase } from '@/lib/supabase-client';
 import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
+import UploadPDF from '@/app/pdfPrueba/page';
 
 function estaActivo(dia: string, rango: string, disponibilidad: {profesor_id: number, dia: string, hora: string}[]) {
   let found = false;
@@ -33,6 +34,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
 
   const [formData, setFormData] = useState({
     id: id,
+    pdf: false,
     nombre: '',
     num_empleado: '',
     correo: '',
@@ -90,6 +92,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
         <Nav></Nav>
         <div className="container position-absolute start-0">
         <h1 className='mt-3'>Editar Profesor</h1>
+        <UploadPDF/>
         <form onSubmit={handleSubmit} className="mt-3">
             <div className="mb-3">
             <label className="form-label">Nombre</label>

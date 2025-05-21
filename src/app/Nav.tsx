@@ -59,6 +59,9 @@ function Nav() {
             <li className="nav-item position-relative top-50 start-100">
               <Link href="/updates" className="nav-link">Actualizaciones</Link>
             </li>
+            <li className="nav-item position-relative top-50 start-100">
+              <Link href="/settings" className="nav-link">Ajustes</Link>
+            </li>
           </ul>
           
             </div>

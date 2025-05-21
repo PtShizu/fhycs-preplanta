@@ -53,6 +53,7 @@ export default function SelectMaterias({
       closeAfterSelect: !multiple,
       maxItems: multiple ? null : 1,
       plugins: multiple ? ['remove_button'] : [],
+      openOnFocus: false,
       onChange: (selected: string | string[]) => {
         const selectedArray = Array.isArray(selected) ? selected : [selected]
         const ids = selectedArray.map(id => parseInt(id))

@@ -1,14 +1,41 @@
+'use client';
+
 import React from "react";
 import { supabase } from "@/lib/supabase-client";
 import Nav from "../Nav";
 import Link from "next/link";
 import GenericDeleteBttn from "@/components/GenericDeleteBttn";
+import { useState, useEffect } from "react";
 
-export const revalidate = 0;
+export default function Salones() {
+    const [grupos, setGrupos] = useState([])
+    const [search, setSearch] = useState('');
+    const [filteredGrupos, setFilteredGrupos] = useState([]);
 
-export default async function Salones() {
-    const { data: grupos } = await supabase.from('grupos').select('*').order("nombre");
+    useEffect(() => {
+        const fetchProfesores = async () => {
+            const { data, error } = await supabase.from('grupos').select('*').order("nombre");
+            if (error) {
+                console.error("Error fetching grupos:", error);
+            } else {
+                setGrupos(data || []);
+            }
+        };
 
+        fetchProfesores();
+    }, []);
+
+    useEffect(() => {
+            if(search == ''){
+                setFilteredGrupos(grupos);
+            }
+            else{
+            setFilteredGrupos(grupos.filter(profesor =>
+                Object.values(profesor).some(value =>
+                    value && value.toString().toLowerCase().includes(search.toLowerCase())
+                )))
+            }
+        }, [grupos, search]);
     return (
         <main>
             <Nav></Nav>
@@ -18,6 +45,13 @@ export default async function Salones() {
             <Link href="/grupos/crear" className="btn btn-success">
                 + Agregar Grupo
             </Link>
+            <input
+                type="text"
+                className="form-control mt-3"
+                placeholder="Buscar grupo..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
                 <table className="table mt-3">
                     <thead>
                         <tr className="ptbs-3">
@@ -27,7 +61,7 @@ export default async function Salones() {
                         </tr>
                     </thead>
                     <tbody>
-                        {grupos?.map(grupo =>(
+                        {filteredGrupos?.map(grupo =>(
                             <tr className="salon" key={grupo.id}>
                                 <th scope="row">{grupo.nombre}</th>
                                 <td>{grupo.etapa}</td>

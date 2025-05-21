@@ -381,7 +381,7 @@ export default function Home() {
 
     if (clases.find(c =>
       c.dia === clase.dia && c.hora === clase.hora &&
-      (c.profesor_id === clase.profesor_id || (c.edificio === clase.edificio && c.salon === clase.salon))
+      (c.profesor_id === clase.profesor_id || (c.edificio === clase.edificio && c.salon === clase.salon && clase.edificio!= null && clase.salon != null))
     )) {
       alert("Ya existe una clase a esa hora con ese profesor o salón.");
       return;
