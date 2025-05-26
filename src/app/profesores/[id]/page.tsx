@@ -124,7 +124,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
                 required
             />
             </div>
-            {user?.email == 'subdireccion.fhycstij@uabc.edu.mx' || user?.email == 'ruben.julian.moreno.astorga@uabc.edu.mx' ? 
+            {user?.email == 'subdireccion.fhycstij@uabc.edu.mx' || user?.email == 'ruben.julian.moreno.astorga@uabc.edu.mx' || user?.email == 'direccion.fhycstij@uabc.edu.mx' || user?.email == 'diana.merchant@uabc.edu.mx' ? 
             <div className="mb-3">
             <label className="form-label">Coordina</label>
             <div className='dropdown'>
