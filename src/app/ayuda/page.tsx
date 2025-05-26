@@ -144,10 +144,10 @@ export default function HelpSection() {
         </ul>
         <div className="alert alert-secondary">
           <i className="bi bi-file-earmark-pdf me-2"></i>
-          <b>Subir PDF:</b> Al presionar el botón de crear profesor, puedes subir un archivo PDF con la información de disponibilidad y asignaturas de interés del profesor. El sistema extraerá automáticamente estos datos para facilitar el registro y actualización.
+          <b>Subir PDF:</b> Al presionar el botón de crear profesor, puedes subir un archivo PDF con la información del profesor. El sistema extraerá automáticamente estos datos para facilitar el registro y actualización.
         </div>
         <div className="alert alert-info">
-          <b>Editar profesor:</b> Al editar un profesor, puedes modificar manualmente todos sus datos, incluyendo disponibilidad, asignaturas de interés, cursos y plataformas. La edición puede ser más compleja que en salones o grupos, ya que implica gestionar listas y horarios, y <u>puedes volver a subir un PDF para actualizar la información de forma masiva,</u> <u>esta acción sobreescribe la información existente.</u>
+          <b>Editar profesor:</b> Al editar un profesor, puedes modificar manualmente todos sus datos o <u>puedes volver a subir un PDF para actualizar la información de forma masiva,</u> <u>esta acción sobreescribe la información existente.</u>
         </div>
         <h6 className="mt-4">Propiedades de un profesor:</h6>
         <table className="table table-bordered mt-2">
