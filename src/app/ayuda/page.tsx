@@ -60,8 +60,8 @@ export default function HelpSection() {
                 <ul className="mb-2">
                   <li>Las materias que aparezcan a elegir dependen de qué grupo se esté editando.</li>
                   <ul>
-                    <li>Si se tiene marcada la opción "Restringir materias obligatorias al semestre del grupo", solo se mostrarán las materias obligatorias que correspondan al semestre actual del grupo.</li>
-                    <li>Si se marca "Incluir optativas generales", podrás elegir de cualquier materia optativa sin importar la etapa, de lo contrario, se mostrarán las materias optativas cuyas etapas correspondan a la etapa del grupo, la cuál es asignada en la pestaña de grupos.</li>
+                    <li>Si se tiene marcada la opción &quot;Restringir materias obligatorias al semestre del grupo&quot;, solo se mostrarán las materias obligatorias que correspondan al semestre actual del grupo.</li>
+                    <li>Si se marca &quot;Incluir optativas generales&quot;, podrás elegir de cualquier materia optativa sin importar la etapa, de lo contrario, se mostrarán las materias optativas cuyas etapas correspondan a la etapa del grupo, la cuál es asignada en la pestaña de grupos.</li>
                   </ul>
                   <li>Solo puedes seleccionar profesores que estén disponibles en el día y hora seleccionados.</li>
                 </ul>
