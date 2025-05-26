@@ -325,7 +325,7 @@ export default function EditarSalon({params}: {params: Promise<{id: string}>}) {
   return (
     <div>
         <Nav></Nav>
-        <div className="container-flex position-absolute start-0">
+        <div className="container-flex position-absolute start-0 ms-3 me-3">
         <h1 className='mt-3'>Editar Programa Educativo</h1>
         <UploadPDFMaterias id={id}/>
         <form onSubmit={handleSubmit} className="mt-3">

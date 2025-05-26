@@ -66,3 +66,11 @@ a {
   text-align: center;
   width: 100%;
 }
+
+.text-outline {
+  text-shadow:
+    -0.75px -0.75px 0 #776a47,
+     0.75px -0.75px 0 #776a47,
+    -0.75px  0.75px 0 #776a47,
+     0.75px  0.75px 0 #776a47;
+}

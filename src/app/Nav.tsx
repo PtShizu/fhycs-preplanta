@@ -56,6 +56,9 @@ function Nav() {
             <li className="nav-item">
               <Link href="/programas_educativos" className="nav-link">Programas Educativos</Link>
             </li>
+            <li className="nav-item">
+              <Link href="/ayuda" className="nav-link">Ayuda</Link>
+            </li>
             <li className="nav-item position-relative top-50 start-100">
               <Link href="/updates" className="nav-link">Actualizaciones</Link>
             </li>

@@ -519,7 +519,7 @@ export default function Home() {
   return (
     <div>
       <Nav />
-      <div className="main">
+      <div className="main ms-3 me-3">
 
         <div className="mt-4">
           <select className="form-select" disabled={!programa?.id ? true : false} onClick={manejarGrupos} onChange={manejarSeleccionGrupo}>
@@ -549,7 +549,26 @@ export default function Home() {
         ) : ''}
 
         {grupoSeleccionado && (
-          <div className="row g-3 mt-4">
+          <div className="card mt-3 shadow-sm">
+    <div className="card-body">
+      <h5 className="card-title text-secondary mb-3"><i className="bi bi-info-circle me-2"></i>Código de color de texto de clases asignadas</h5>
+      <div className="d-flex flex-row justify-content-start align-items-center gap-4 px-2 py-2 rounded bg-light border" style={{maxWidth: 'fit-content'}}>
+        <span className="d-flex align-items-center" style={{ color: 'black', fontWeight: 500 }}>
+          <span style={{fontSize: '1.3em', marginRight: 6}}>⚫</span>Presencial
+        </span>
+        <span className="d-flex align-items-center" style={{ color: 'red', fontWeight: 500 }}>
+          <span style={{fontSize: '1.3em', marginRight: 6}}>🔴</span>Virtual Síncrona
+        </span>
+        <span className="d-flex align-items-center" style={{ color: '#b59a00', fontWeight: 500 }}>
+          <span style={{fontSize: '1.3em', marginRight: 6}}>🟡</span>Virtual Asíncrona
+        </span>
+      </div>
+    </div>
+  </div>
+        )}
+
+        {grupoSeleccionado && (
+          <div className="row g-3 mt-1">
             <table className="col-8 table table-bordered text-center align-middle">
               <thead>
                 <tr>
@@ -724,10 +743,10 @@ export default function Home() {
               </button>
               <div className='col mt-3'>
                 <button className="row btn btn-danger ms-1" onClick={() => manejarVirtual('síncrona')} disabled={!celda}>
-                  Marcar Virtual Síncrona
+                  Marcar como Virtual Síncrona
                 </button>
                 <button className="row btn btn-warning ms-1 mt-3" onClick={() => manejarVirtual('asíncrona')} disabled={!celda}>
-                  Marcar Virtual Asíncrona
+                  Marcar como Virtual Asíncrona
                 </button>
                 <button className="row btn btn-dark ms-1 mt-3" onClick={() => manejarVirtual('')} disabled={!celda}>
                   Quitar Marca Virtual
