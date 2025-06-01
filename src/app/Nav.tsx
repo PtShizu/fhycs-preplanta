@@ -11,7 +11,7 @@ function Nav() {
     <>
       <header className={styles.header}>
         <div className={styles.topBar}>
-          <Image src={logouabc} alt="Logo UABC" width={80} height={100} />
+          {/* <Image src={logouabc} alt="Logo UABC" width={80} height={100} /> */}
           <div className={styles.title}>
             <h1>Universidad Autónoma de Baja California</h1>
             <h2>Facultad de Humanidades y Ciencias Sociales</h2>
